@@ -69,11 +69,61 @@
     {% include "partials/history.html" with events=recent_activity %}
   </section>
 
+  <section class="card" aria-labelledby="h-review">
+    <div class="card-header">
+      <h2 id="h-review">{% translate "Registrations to review" %}</h2>
+      {% if to_review_count %}<span class="badge badge-warning">{{ to_review_count }}</span>{% endif %}
+    </div>
+    {% if to_review %}
+      <ul class="task-list">
+        {% for r in to_review %}
+          <li>
+            <div><strong>{{ r.team_name }}</strong><br><span class="muted small">{{ r.school.name }} · {{ r.competition.name }}</span></div>
+            <a class="btn btn-secondary" href="{% url 'competitions:manage_registration' r.pk %}">{% translate "Review" %}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">{% translate "No registrations waiting for review." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-deadlines">
+    <h2 id="h-deadlines">{% translate "Next three weeks" %}</h2>
+    {% if deadlines %}
+      <ul class="task-list">
+        {% for d in deadlines %}
+          <li>
+            <div><strong>{{ d.label }}</strong><br><span class="muted small"><a href="{% url 'competitions:manage_competition' d.competition.pk %}">{{ d.competition.name }}</a></span></div>
+            <span class="nowrap small">{{ d.when|date:"D M j, g:i a" }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">{% translate "No registration dates or roster deadlines in the next three weeks." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-roster-changes">
+    <h2 id="h-roster-changes">{% translate "Roster change requests" %}</h2>
+    {% if pending_roster_changes %}
+      <ul class="task-list">
+        {% for c in pending_roster_changes %}
+          <li>
+            <div><strong>{{ c.registration.team_name }}</strong><br><span class="muted small">{{ c.description }}</span></div>
+            <a class="btn btn-secondary" href="{% url 'competitions:manage_registration' c.registration.pk %}">{% translate "Review" %}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">{% translate "No roster changes waiting." %}</p>
+    {% endif %}
+  </section>
+
   <section class="card" aria-labelledby="h-later">
     <div class="card-header"><h2 id="h-later">{% translate "Coming in later phases" %}</h2></div>
     <ul class="task-list">
-      <li><span>{% translate "Registrations to review and roster problems" %}</span><span class="badge badge-neutral">{% translate "Phase 2" %}</span></li>
-      <li><span>{% translate "Registration and roster deadlines" %}</span><span class="badge badge-neutral">{% translate "Phase 2–3" %}</span></li>
+      <li><span>{% translate "Schedules, fixtures and announcements" %}</span><span class="badge badge-neutral">{% translate "Phase 3" %}</span></li>
       <li><span>{% translate "Disputed and unconfirmed results" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
     </ul>
   </section>

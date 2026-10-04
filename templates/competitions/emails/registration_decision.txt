@@ -1,0 +1,12 @@
+{% autoescape off %}Hello,
+
+{% if registration.status == "approved" %}Your team {{ registration.team_name }} ({{ registration.school.name }}) is approved for {{ registration.competition }}.{% if registration.division %}
+Division: {{ registration.division }}{% endif %}{% elif registration.status == "waitlisted" %}Your team {{ registration.team_name }} ({{ registration.school.name }}) is on the waitlist for {{ registration.competition }}. OSEA will contact you if a spot opens.{% elif registration.status == "changes_requested" %}OSEA needs some changes to {{ registration.team_name }} ({{ registration.school.name }}) before it can be approved for {{ registration.competition }}.{% elif registration.status == "withdrawn" %}{{ registration.team_name }} ({{ registration.school.name }}) has been withdrawn from {{ registration.competition }}.{% endif %}
+{% if registration.admin_message %}
+Message from OSEA:
+{{ registration.admin_message }}
+{% endif %}
+See the registration: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

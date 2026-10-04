@@ -1,6 +1,6 @@
 # OSEA platform: plan and decisions
 
-Last updated: 2026-10-04 (Phase 1 complete)
+Last updated: 2026-10-04 (Phase 2 complete)
 
 ## Goal
 
@@ -35,11 +35,12 @@ First complete workflow:
 2. **Student data.** First name, last initial, gamer tag, grade, and optional game rank.
    The coach confirms school consent forms are on file (recorded with who and when); forms are not uploaded.
    Gamer tags are not public in v1. Data hosted in Canada.
-3. **Competition rules are set per competition by administrators.** Games (Valorant, Rocket League, Smash…) are
-   records admins create; each competition sets its team size, roster minimum/maximum, match length (best of N),
-   standings points and tiebreaker order. Starting example (Rocket League): 3v3, rosters of 3–5, best-of-5,
-   round robin within each division; standings by match wins; tiebreakers head-to-head, then game difference,
-   then a recorded admin decision; a forfeit counts as a 3–0 loss.
+3. **Administrators set every competition's rules when they set it up** (decided 2026-10-04): registration and
+   roster dates, eligible school levels and grade range, players per match, roster minimum and maximum, team
+   limits (overall and per school), format and match length (best of N), which player details are required
+   (in-game name, rank), and public visibility. Games are records admins create, with their own label for a
+   player's in-game name (e.g. "Riot ID"). Nothing game-specific is built into the code. Standings points and
+   tiebreaker order will be added to the same settings in Phase 4.
 4. **Result confirmation.** The opposing coach confirms or disputes within 48 hours. No response sends it to the
    admin queue with one-click finalize (no automatic finalization). Disputes always go to an admin.
    Admins can enter or correct any result, and every change is logged.
@@ -86,7 +87,7 @@ automatic round-robin generation, result screenshot uploads, notification emails
 |---|---|---|
 | 0. Foundation | Sign-in, roles, server-side permission checks, brand styling, tests running on GitHub | ✅ Oct 4 |
 | 1. Schools & coaches | School directory, coach sign-up and approval, yearly membership, activity log, CSV export | ✅ Oct 4 |
-| 2. Competitions & registration | Admin-managed games and competitions (own dates and rules), divisions, team registration with rosters, review queue, division assignment | early Nov |
+| 2. Competitions & registration | Admin-managed games and competitions (own dates and rules), divisions, team registration with rosters, review queue, division assignment | ✅ Oct 4 |
 | 3. Schedules & announcements | Fixtures, publishing, reschedule/forfeit/cancel/bye, coach "next match", public schedule, announcements | mid-Nov |
 | 4. Results & standings | Submit, confirm or dispute, admin finalize, standings with tiebreakers, public standings | early Dec |
 | 5. Pilot readiness | Hosting set up (with approval), admin two-factor sign-in, backup guide, pilot with a few coaches | before Dec 18 |
@@ -103,3 +104,21 @@ Targets assume regular review checkpoints with OSEA. The December pilot must fin
 - Exports are CSV files; cells that a spreadsheet would treat as formulas are neutralised, and every download is logged.
 - New administrator accounts are created in the back office (`/back-office/`) or with
   `python manage.py createsuperuser` for now; an admin-management screen can come later.
+
+## Phase 2 notes
+
+- Registration statuses and who can change what:
+  - **Draft:** the coach edits freely while registration is open. OSEA doesn't see drafts in its review queue.
+  - **Submitted:** locked; the coach can take it back to draft while registration is open.
+  - **Changes requested:** the coach edits and resubmits until the roster deadline.
+  - **Approved:** roster changes (add, remove or swap) only by request, approved by an admin, until the roster
+    deadline.
+  - **Waitlisted / withdrawn:** set by admins; coaches can withdraw their own team at any time.
+- Approval requires: a roster within the competition's limits, every player eligible (grade, still at the school,
+  required details filled in, not on another team in the same competition), the coach's consent confirmation,
+  the school's membership confirmed or excepted for that school year, and room under the team limit.
+- Rank is shown to admins for judgment only. Teams are never placed in a division automatically.
+- Students are stored once per school (first name, last initial, grade) and reused across competitions.
+  In-game names and ranks are stored per roster, because they differ by game.
+- Public pages show competition details, and approved team and school names only if the admin turns on
+  "show teams publicly". Students, rosters and coach contacts are never public.

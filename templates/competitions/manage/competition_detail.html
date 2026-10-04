@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{{ competition.name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'competitions:manage_list' %}">← {% translate "All competitions" %}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ competition.game }} · {{ competition.school_year }}{% if competition.season %} · {{ competition.season }}{% endif %}</p>
+    <h1>{{ competition.name }}</h1>
+    <p class="lede">
+      {% if competition.is_published %}<span class="badge badge-success">{% translate "Published" %}</span>{% else %}<span class="badge badge-neutral">{% translate "Not published: only admins can see it" %}</span>{% endif %}
+      {% with state=competition.registration_state %}{% if state == 'open' %}<span class="badge badge-success">{% translate "Registration open" %}</span>{% elif state == 'upcoming' %}<span class="badge badge-info">{% translate "Registration opens soon" %}</span>{% else %}<span class="badge badge-neutral">{% translate "Registration closed" %}</span>{% endif %}{% endwith %}
+    </p>
+  </div>
+  <div class="btn-row">
+    <a class="btn btn-secondary" href="{% url 'competitions:detail' competition.pk %}">{% translate "View public page" %}</a>
+    <a class="btn btn-primary" href="{% url 'competitions:competition_edit' competition.pk %}">{% translate "Edit settings" %}</a>
+  </div>
+</div>
+
+<section class="card" aria-labelledby="h-settings">
+  <h2 id="h-settings">{% translate "Settings" %}</h2>
+  <div class="grid-auto">
+    <dl class="details">
+      <dt>{% translate "Registration" %}</dt><dd>{{ competition.registration_opens_at|date:"M j, g:i a" }} – {{ competition.registration_closes_at|date:"M j, Y, g:i a" }}</dd>
+      <dt>{% translate "Roster deadline" %}</dt><dd>{{ competition.roster_deadline|date:"M j, Y, g:i a" }}</dd>
+    </dl>
+    <dl class="details">
+      <dt>{% translate "Who can enter" %}</dt><dd>{{ competition.allowed_levels_display }} · {{ competition.grade_range_label }}</dd>
+      <dt>{% translate "Teams" %}</dt><dd>{% blocktranslate with p=competition.players_per_team a=competition.roster_min b=competition.roster_max %}{{ p }} play at once · roster {{ a }}–{{ b }}{% endblocktranslate %}</dd>
+      <dt>{% translate "Limits" %}</dt><dd>{% if competition.max_teams %}{% blocktranslate with n=competition.max_teams %}{{ n }} teams{% endblocktranslate %}{% else %}{% translate "No team limit" %}{% endif %} · {% if competition.max_teams_per_school %}{% blocktranslate with n=competition.max_teams_per_school %}{{ n }} per school{% endblocktranslate %}{% else %}{% translate "no per-school limit" %}{% endif %}</dd>
+    </dl>
+    <dl class="details">
+      <dt>{% translate "Format" %}</dt><dd>{{ competition.get_format_display }}{% if competition.best_of %} · {% blocktranslate with n=competition.best_of %}best of {{ n }}{% endblocktranslate %}{% endif %}</dd>
+      <dt>{% translate "Player details" %}</dt><dd>{{ competition.game.gamer_tag_label }} {% if competition.require_gamer_tag %}{% translate "(required)" %}{% else %}{% translate "(optional)" %}{% endif %}{% if competition.asks_for_rank %} · {{ competition.game.rank_label }} ({{ competition.get_rank_requirement_display|lower }}){% endif %}</dd>
+    </dl>
+  </div>
+</section>
+
+<div class="grid grid-2 mt">
+  <section class="card" aria-labelledby="h-divisions">
+    <div class="card-header"><h2 id="h-divisions">{% translate "Divisions" %}</h2><a class="btn btn-secondary" href="{% url 'competitions:division_create' competition.pk %}">{% translate "Add division" %}</a></div>
+    {% if divisions %}
+      <ul class="task-list">
+        {% for d in divisions %}
+          <li>
+            <div><strong>{{ d.name }}</strong>{% if d.description %}<br><span class="muted small">{{ d.description }}</span>{% endif %}<br><span class="muted small">{% blocktranslate count n=d.team_count %}{{ n }} team{% plural %}{{ n }} teams{% endblocktranslate %}</span></div>
+            <div class="btn-row">
+              <a href="{% url 'competitions:division_edit' competition.pk d.pk %}">{% translate "Edit" %}</a>
+              {% if not d.team_count %}<form class="inline-form" method="post" action="{% url 'competitions:division_delete' competition.pk d.pk %}">{% csrf_token %}<button class="btn-link" type="submit">{% translate "Delete" %}</button></form>{% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">{% translate "No divisions yet. Add them before placing teams, e.g. Bronze–Gold, Platinum–Diamond." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-changes">
+    <h2 id="h-changes">{% translate "Roster change requests" %}</h2>
+    {% for change in pending_changes %}
+      <div class="mb">
+        <strong>{{ change.registration.team_name }}</strong> <span class="muted small">({{ change.registration.school.name }})</span><br>
+        {{ change.description }}<br><span class="muted small">{% translate "Reason:" %} {{ change.reason }}</span>
+        <form method="post" action="{% url 'competitions:roster_change_decide' change.pk %}" class="mt">
+          {% csrf_token %}
+          <input type="hidden" name="return_to" value="competition">
+          <label class="visually-hidden" for="note-{{ change.pk }}">{% translate "Message to the coach" %}</label>
+          <input id="note-{{ change.pk }}" type="text" name="note" placeholder="{% translate 'Message to the coach (required to decline)' %}">
+          <div class="btn-row mt">
+            <button class="btn btn-primary" type="submit" name="action" value="approve">{% translate "Approve" %}</button>
+            <button class="btn btn-secondary" type="submit" name="action" value="decline">{% translate "Decline" %}</button>
+          </div>
+        </form>
+      </div>
+    {% empty %}
+      <p class="muted">{% translate "No roster changes waiting." %}</p>
+    {% endfor %}
+  </section>
+</div>
+
+<section class="mt" aria-labelledby="h-teams">
+  <div class="page-header">
+    <h2 id="h-teams">{% translate "Teams" %}</h2>
+    <div class="btn-row">
+      <a class="btn btn-secondary" href="{% url 'competitions:export_teams' competition.pk %}">{% translate "Download team list" %}</a>
+      <a class="btn btn-secondary" href="{% url 'competitions:export_rosters' competition.pk %}">{% translate "Download rosters" %}</a>
+    </div>
+  </div>
+  <nav class="btn-row mb" aria-label="{% translate 'Filter teams by status' %}">
+    <a class="btn {% if not status %}btn-primary{% else %}btn-secondary{% endif %}" href="?">{% translate "All active" %}</a>
+    {% for value, label in status_choices %}
+      <a class="btn {% if status == value %}btn-primary{% else %}btn-secondary{% endif %}" href="?status={{ value }}">{{ label }}{% for k, n in counts.items %}{% if k == value %} ({{ n }}){% endif %}{% endfor %}</a>
+    {% endfor %}
+  </nav>
+  {% if registrations %}
+  <form method="post" action="{% url 'competitions:assign_divisions' competition.pk %}">
+    {% csrf_token %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">{% translate "Team" %}</th>
+            <th scope="col">{% translate "Status" %}</th>
+            <th scope="col" class="num hide-sm">{% translate "Players" %}</th>
+            <th scope="col">{% translate "Division" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in registrations %}
+          <tr>
+            <th scope="row"><a href="{% url 'competitions:manage_registration' r.pk %}">{{ r.team_name }}</a><br><span class="muted small">{{ r.school.name }}</span></th>
+            <td>{% status_badge r.status r.get_status_display %}</td>
+            <td class="num hide-sm">{{ r.roster_size }}</td>
+            <td>
+              {% if r.status != 'withdrawn' %}
+              <label class="visually-hidden" for="division-{{ r.pk }}">{% blocktranslate with team=r.team_name %}Division for {{ team }}{% endblocktranslate %}</label>
+              <select id="division-{{ r.pk }}" name="division-{{ r.pk }}">
+                <option value="">{% translate "Not placed" %}</option>
+                {% for d in divisions %}<option value="{{ d.pk }}" {% if r.division_id == d.pk %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+              </select>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if divisions %}<div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save divisions" %}</button></div>{% endif %}
+  </form>
+  {% else %}
+    <div class="card empty-state"><h3>{% translate "No teams here yet" %}</h3><p>{% translate "Teams appear as coaches start registering." %}</p></div>
+  {% endif %}
+</section>
+
+<section class="card mt" aria-labelledby="h-history">
+  <h2 id="h-history">{% translate "Settings history" %}</h2>
+  {% include "partials/history.html" with events=history %}
+</section>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if game %}{{ game.name }}{% else %}{% translate "Add a game" %}{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'competitions:game_list' %}">← {% translate "All games" %}</a>
+<div class="card card-medium">
+  <h1>{% if game %}{{ game.name }}{% else %}{% translate "Add a game" %}{% endif %}</h1>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.name %}
+    <div class="grid grid-2">
+      {% include "partials/field.html" with field=form.gamer_tag_label %}
+      {% include "partials/field.html" with field=form.rank_label %}
+    </div>
+    {% include "partials/field.html" with field=form.is_active %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save" %}</button></div>
+  </form>
+</div>
+{% endblock %}

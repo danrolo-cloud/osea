@@ -12,7 +12,7 @@
   <a class="btn btn-secondary" href="{% url 'schools:request_school' %}">{% translate "Request another school" %}</a>
 </div>
 
-{% if needs_verification or pending or closed %}
+{% if needs_verification or pending or closed or registrations_to_finish %}
 <section class="card mb" aria-labelledby="h-attention">
   <h2 id="h-attention">{% translate "Needs your attention" %}</h2>
   <ul class="task-list">
@@ -22,6 +22,13 @@
         <form method="post" action="{% url 'accounts:resend_verification' %}">{% csrf_token %}<button class="btn btn-secondary" type="submit">{% translate "Resend link" %}</button></form>
       </li>
     {% endif %}
+    {% for r in registrations_to_finish %}
+      <li>
+        <div><strong>{{ r.team_name }}</strong> · {{ r.competition.name }}<br>
+          <span class="muted small">{% if r.status == 'draft' %}{% blocktranslate with d=r.competition.registration_closes_at|date:"D M j, g:i a" %}Draft: submit before {{ d }}{% endblocktranslate %}{% else %}{% blocktranslate with d=r.competition.roster_deadline|date:"D M j, g:i a" %}OSEA asked for changes: resubmit before {{ d }}{% endblocktranslate %}{% endif %}</span></div>
+        <a class="btn btn-primary" href="{% url 'competitions:registration' r.pk %}">{% translate "Continue" %}</a>
+      </li>
+    {% endfor %}
     {% for access in pending %}
       <li>
         <div><strong>{{ access.school_label }}</strong><br><span class="muted small">{% blocktranslate with date=access.requested_at|date:"M j" %}Requested {{ date }}. OSEA will email you when it's reviewed.{% endblocktranslate %}</span></div>
@@ -63,10 +70,52 @@
   {% endif %}
 </section>
 
+<section class="mt" aria-labelledby="h-teams">
+  <h2 id="h-teams">{% translate "My teams" %}</h2>
+  {% if registrations %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">{% translate "Team" %}</th><th scope="col" class="hide-sm">{% translate "Competition" %}</th><th scope="col">{% translate "Status" %}</th></tr></thead>
+        <tbody>
+          {% for r in registrations %}
+          <tr>
+            <th scope="row"><a href="{% url 'competitions:registration' r.pk %}">{{ r.team_name }}</a><br><span class="muted small">{{ r.school.name }}{% if r.division %} · {{ r.division }}{% endif %}</span></th>
+            <td class="hide-sm">{{ r.competition.name }}</td>
+            <td>{% status_badge r.status r.get_status_display %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="card empty-state"><p>{% translate "No teams registered yet." %}</p></div>
+  {% endif %}
+</section>
+
+<section class="mt" aria-labelledby="h-open">
+  <h2 id="h-open">{% translate "Open for registration" %}</h2>
+  {% if open_competitions %}
+    <div class="grid grid-2">
+      {% for c in open_competitions %}
+        <article class="card">
+          <p class="eyebrow">{{ c.game }}</p>
+          <h3>{{ c.name }}</h3>
+          <p class="small">{% blocktranslate with d=c.registration_closes_at|date:"l, F j, g:i a" %}Closes {{ d }}{% endblocktranslate %} · {{ c.grade_range_label }}</p>
+          <div class="btn-row">
+            <a class="btn btn-primary" href="{% url 'competitions:register' c.pk %}">{% translate "Register a team" %}</a>
+            <a href="{% url 'competitions:detail' c.pk %}">{% translate "Details" %}</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card empty-state"><p>{% translate "Nothing open for your schools right now." %} <a href="{% url 'competitions:list' %}">{% translate "See all competitions" %}</a></p></div>
+  {% endif %}
+</section>
+
 <section class="card mt" aria-labelledby="h-later">
   <h2 id="h-later">{% translate "Coming in later phases" %}</h2>
   <ul class="task-list">
-    <li><span>{% translate "Register teams and rosters for competitions" %}</span><span class="badge badge-neutral">{% translate "Phase 2" %}</span></li>
     <li><span>{% translate "Your teams' upcoming matches and announcements" %}</span><span class="badge badge-neutral">{% translate "Phase 3" %}</span></li>
     <li><span>{% translate "Submit and confirm results" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
   </ul>

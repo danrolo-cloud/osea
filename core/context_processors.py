@@ -30,6 +30,23 @@ _SECTIONS = {
     "activity_log": "activity",
     "exports": "exports",
     "style_guide": "style",
+    "list": "competitions",
+    "detail": "competitions",
+    "register": "dashboard",
+    "registration": "dashboard",
+    "student_list": "dashboard",
+    "student_create": "dashboard",
+    "student_edit": "dashboard",
+    "game_list": "games",
+    "game_create": "games",
+    "game_edit": "games",
+    "manage_list": "manage_competitions",
+    "competition_create": "manage_competitions",
+    "competition_edit": "manage_competitions",
+    "manage_competition": "manage_competitions",
+    "division_create": "manage_competitions",
+    "division_edit": "manage_competitions",
+    "manage_registration": "manage_competitions",
 }
 
 

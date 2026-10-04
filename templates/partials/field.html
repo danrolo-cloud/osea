@@ -1,5 +1,12 @@
 {% load i18n %}{# One form field with label, help text and errors. Usage: {% include "partials/field.html" with field=form.email %} #}
-{% if field.widget_type == "checkbox" %}
+{% if field.widget_type == "checkboxselectmultiple" %}
+<fieldset class="form-field choice-group{% if field.errors %} has-error{% endif %}">
+  <legend>{{ field.label }}{% if field.field.required %} <span class="required" aria-hidden="true">*</span>{% endif %}</legend>
+  {% for choice in field %}<label class="choice">{{ choice.tag }} {{ choice.choice_label }}</label>{% endfor %}
+  {% if field.help_text %}<span class="help-text">{{ field.help_text|safe }}</span>{% endif %}
+  {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+</fieldset>
+{% elif field.widget_type == "checkbox" %}
 <div class="form-field checkbox{% if field.errors %} has-error{% endif %}">
   {{ field }}
   <div>

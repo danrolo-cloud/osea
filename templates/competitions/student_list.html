@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Students" %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'schools:my_school' school.pk %}">← {{ school.name }}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ school.name }}</p>
+    <h1>{% translate "Students" %}</h1>
+    <p class="lede">{% translate "Private to your school's coaches and OSEA. Only first name, last initial and grade are kept." %}</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'competitions:student_create' school.pk %}">{% translate "Add a student" %}</a>
+</div>
+<nav class="btn-row mb" aria-label="{% translate 'Filter students' %}">
+  <a class="btn {% if show != 'all' %}btn-primary{% else %}btn-secondary{% endif %}" href="?">{% translate "Current students" %}</a>
+  <a class="btn {% if show == 'all' %}btn-primary{% else %}btn-secondary{% endif %}" href="?show=all">{% translate "Include former students" %}</a>
+</nav>
+{% if students %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th scope="col">{% translate "Student" %}</th><th scope="col">{% translate "Grade" %}</th><th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th></tr></thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <th scope="row">{{ s }}{% if not s.is_active %} <span class="badge badge-neutral">{% translate "Former" %}</span>{% endif %}</th>
+        <td>{{ s.grade }}</td>
+        <td class="table-actions"><a href="{% url 'competitions:student_edit' school.pk s.pk %}">{% translate "Edit" %}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="help-text mt">{% translate "Update grades at the start of each school year." %}</p>
+{% else %}
+<div class="card empty-state"><h2>{% translate "No students yet" %}</h2><p>{% translate "Add students here, or while building a roster." %}</p></div>
+{% endif %}
+{% endblock %}

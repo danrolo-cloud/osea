@@ -201,7 +201,7 @@ code { font-size: 0.9em; background: var(--purple-50); padding: 0.1em 0.35em; bo
 .btn-secondary { background: var(--surface); color: var(--purple-700); border-color: var(--purple-700); }
 .btn-secondary:hover { background: var(--purple-50); }
 .btn-danger { background: var(--danger); color: #fff; }
-.btn-link { background: none; border: 0; color: var(--purple-700); text-decoration: underline; padding: 0.25rem; min-height: 0; font-weight: 500; }
+.btn-link { font: inherit; background: none; border: 0; color: var(--purple-700); text-decoration: underline; padding: 0.25rem; min-height: 0; font-weight: 500; cursor: pointer; }
 .btn[disabled], .btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 
@@ -227,6 +227,19 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.25rem 0.25rem; margin: 0 0 1.25rem; }
 legend { font-family: var(--font-head); font-weight: 700; color: var(--purple-700); padding: 0 0.4rem; }
 .or-divider { color: var(--ink-muted); font-size: 0.9rem; margin: -0.4rem 0 0.8rem; }
+
+.choice-group { border: 0; padding: 0; margin: 0 0 1.1rem; }
+.choice-group legend { font-family: var(--font-body); font-weight: 500; color: var(--ink); padding: 0; margin-bottom: 0.3rem; font-size: 1rem; }
+.choice { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0.2rem 1.25rem 0.2rem 0; font-weight: 400 !important; }
+.choice input { width: 1.15rem; height: 1.15rem; accent-color: var(--purple-700); }
+.inline-form { display: inline; }
+.inline-form button { vertical-align: middle; }
+.grid-auto { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.checklist { list-style: none; padding: 0; margin: 0; }
+.checklist li { padding: 0.35rem 0 0.35rem 1.6rem; position: relative; }
+.checklist li::before { position: absolute; left: 0; font-weight: 700; }
+.checklist li.ok::before { content: "✓"; color: var(--success); }
+.checklist li.todo::before { content: "!"; color: var(--warning); }
 
 /* Filter bar above tables */
 .filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; }

@@ -5,6 +5,11 @@ register = template.Library()
 
 # Which colour each status uses, so statuses look the same on every screen.
 _BADGE = {
+    "draft": "neutral",
+    "submitted": "info",
+    "changes_requested": "warning",
+    "waitlisted": "warning",
+    "withdrawn": "neutral",
     "pending": "warning",
     "approved": "success",
     "confirmed": "success",

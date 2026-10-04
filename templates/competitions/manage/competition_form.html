@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if competition %}{% translate "Competition settings" %}{% else %}{% translate "Set up a competition" %}{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% if competition %}{% url 'competitions:manage_competition' competition.pk %}{% else %}{% url 'competitions:manage_list' %}{% endif %}">← {% translate "Back" %}</a>
+<div class="card card-medium">
+  <h1>{% if competition %}{{ competition.name }}{% else %}{% translate "Set up a competition" %}{% endif %}</h1>
+  <p class="help-text">{% translate "All times are Toronto time. Coaches see the competition once it's published." %}</p>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for title, fields in form.section_fields %}
+      <fieldset>
+        <legend>{{ title }}</legend>
+        <div class="grid grid-2">
+          {% for field in fields %}{% include "partials/field.html" with field=field %}{% endfor %}
+        </div>
+      </fieldset>
+    {% endfor %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save competition" %}</button></div>
+  </form>
+</div>
+{% endblock %}

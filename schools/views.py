@@ -37,8 +37,15 @@ def my_school(request, pk):
     co_coaches = (
         CoachAccess.objects.approved().filter(school=school).exclude(coach=request.user).select_related("coach")
     )
+    registrations = school.registrations.select_related("competition").order_by("-competition__registration_opens_at")
     return render(
         request,
         "schools/my_school.html",
-        {"school": school, "year": year, "membership": membership, "co_coaches": co_coaches},
+        {
+            "school": school,
+            "year": year,
+            "membership": membership,
+            "co_coaches": co_coaches,
+            "registrations": registrations,
+        },
     )

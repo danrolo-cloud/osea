@@ -5,7 +5,7 @@ management, competition registration, schedules, results and standings.
 
 See [docs/PLAN.md](docs/PLAN.md) for the agreed scope, decisions and phases.
 
-## Current status: Phase 1 (schools and coaches)
+## Current status: Phase 2 (competitions and registration)
 
 What works, with real data in the database:
 - **Coach sign-up:** account plus school request in one form, email confirmation link, "request another school".
@@ -20,7 +20,18 @@ What works, with real data in the database:
 - **Activity log** of every important change (who, when, before and after), which can't be edited or deleted.
 - **CSV exports** of schools, coaches and memberships.
 
-Not built yet: competitions, registrations, rosters, schedules, results (Phases 2–4). Those dashboard panels are
+Phase 2 adds, with real data in the database:
+- **Games and competitions** set up entirely by admins: dates, eligibility (school levels, grades), team size,
+  roster limits, team limits, format, required player details, publishing.
+- **Divisions** defined per competition; admins place teams (rank is shown, never used automatically).
+- **Coach registration:** start a team, add students (on file or new), submit with consent confirmation,
+  reopen while registration is open, withdraw; roster change requests (add/remove/swap) after approval.
+- **Admin review:** approve, waitlist or ask for changes, with automatic checks (eligibility, roster limits,
+  membership, capacity) and emails to the school's coaches; direct roster edits; team and roster CSV exports.
+- **Students list** per school, private to that school's coaches and OSEA.
+- **Public competition pages** with approved team and school names only (when the admin allows it).
+
+Not built yet: schedules, results and standings (Phases 3–4). Those dashboard panels are
 labelled "coming in later phases". Emails print to the terminal in development; nothing is sent.
 
 ## Running it on your computer
@@ -64,6 +75,7 @@ Both run automatically on GitHub for every push.
 | `config/` | Site-wide settings and web addresses |
 | `accounts/` | User accounts, sign-in, sign-up, email confirmation, roles |
 | `schools/` | School boards, schools, school years, memberships, coach access and approval |
+| `competitions/` | Games, competitions, divisions, registrations, rosters and their rules (`services.py`) |
 | `audit/` | The activity log |
 | `core/` | Home page, dashboards, CSV export helper |
 | `templates/` | Page layouts (HTML) |

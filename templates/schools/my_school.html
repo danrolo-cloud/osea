@@ -36,7 +36,14 @@
 </div>
 
 <section class="card mt" aria-labelledby="h-teams">
-  <h2 id="h-teams">{% translate "Teams and students" %}</h2>
-  <div class="placeholder-note"><p><strong>{% translate "Phase 2:" %}</strong> {% translate "registering teams, managing rosters and student details will appear here." %}</p></div>
+  <div class="card-header">
+    <h2 id="h-teams">{% translate "Teams" %}</h2>
+    <a class="btn btn-secondary" href="{% url 'competitions:student_list' school.pk %}">{% translate "Students" %}</a>
+  </div>
+  {% for r in registrations %}
+    <p><a href="{% url 'competitions:registration' r.pk %}">{{ r.team_name }}</a> <span class="muted small">{{ r.competition.name }}</span> {% status_badge r.status r.get_status_display %}</p>
+  {% empty %}
+    <p class="muted">{% translate "No teams yet." %} <a href="{% url 'competitions:list' %}">{% translate "See competitions" %}</a></p>
+  {% endfor %}
 </section>
 {% endblock %}

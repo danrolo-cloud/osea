@@ -1,0 +1,12 @@
+{% autoescape off %}Hello,
+
+Your roster change request for {{ registration.team_name }} ({{ registration.competition }}) was {{ change.get_status_display|lower }}:
+{{ change.description }}
+{% if change.decision_note %}
+Message from OSEA:
+{{ change.decision_note }}
+{% endif %}
+See the registration: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

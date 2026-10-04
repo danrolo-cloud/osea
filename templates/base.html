@@ -32,6 +32,7 @@
         <ul class="nav-list">
           {% if user.is_authenticated %}
             <li><a href="{% url 'core:dashboard' %}" {% if nav_section == 'dashboard' %}aria-current="page"{% endif %}>{% translate "Dashboard" %}</a></li>
+            <li><a href="{% url 'competitions:list' %}" {% if nav_section == 'competitions' %}aria-current="page"{% endif %}>{% translate "Competitions" %}</a></li>
             <li><a href="{% url 'accounts:profile' %}" {% if nav_section == 'account' %}aria-current="page"{% endif %}>{% translate "Account" %}</a></li>
             <li class="nav-user"><span class="visually-hidden">{% translate "Signed in as" %} </span>{{ user.get_full_name }}</li>
             <li>
@@ -42,6 +43,7 @@
             </li>
           {% else %}
             <li><a href="{% url 'core:home' %}" {% if nav_section == 'home' %}aria-current="page"{% endif %}>{% translate "Home" %}</a></li>
+            <li><a href="{% url 'competitions:list' %}" {% if nav_section == 'competitions' %}aria-current="page"{% endif %}>{% translate "Competitions" %}</a></li>
             <li><a href="{% url 'accounts:sign_up' %}" {% if nav_section == 'sign_up' %}aria-current="page"{% endif %}>{% translate "Coach sign up" %}</a></li>
             <li><a href="{% url 'accounts:login' %}" {% if nav_section == 'sign_in' %}aria-current="page"{% endif %}>{% translate "Sign in" %}</a></li>
           {% endif %}
@@ -54,9 +56,11 @@
     <nav class="subnav" aria-label="{% translate 'Administration' %}">
       <div class="container">
         <ul>
+          <li><a href="{% url 'competitions:manage_list' %}" {% if nav_section == 'manage_competitions' %}aria-current="page"{% endif %}>{% translate "Competitions" %}</a></li>
           <li><a href="{% url 'schools:access_requests' %}" {% if nav_section == 'access' %}aria-current="page"{% endif %}>{% translate "Coach requests" %}</a></li>
           <li><a href="{% url 'schools:school_list' %}" {% if nav_section == 'schools' %}aria-current="page"{% endif %}>{% translate "Schools" %}</a></li>
           <li><a href="{% url 'schools:coach_list' %}" {% if nav_section == 'coaches' %}aria-current="page"{% endif %}>{% translate "Coaches" %}</a></li>
+          <li><a href="{% url 'competitions:game_list' %}" {% if nav_section == 'games' %}aria-current="page"{% endif %}>{% translate "Games" %}</a></li>
           <li><a href="{% url 'schools:board_list' %}" {% if nav_section == 'boards' %}aria-current="page"{% endif %}>{% translate "School boards" %}</a></li>
           <li><a href="{% url 'schools:year_list' %}" {% if nav_section == 'years' %}aria-current="page"{% endif %}>{% translate "School years" %}</a></li>
           <li><a href="{% url 'audit:activity_log' %}" {% if nav_section == 'activity' %}aria-current="page"{% endif %}>{% translate "Activity log" %}</a></li>

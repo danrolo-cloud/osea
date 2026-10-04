@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Division" %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'competitions:manage_competition' competition.pk %}">← {{ competition.name }}</a>
+<div class="card card-medium">
+  <h1>{% if division %}{{ division.name }}{% else %}{% translate "Add a division" %}{% endif %}</h1>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.name %}
+    {% include "partials/field.html" with field=form.description %}
+    {% include "partials/field.html" with field=form.order %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save" %}</button></div>
+  </form>
+</div>
+{% endblock %}

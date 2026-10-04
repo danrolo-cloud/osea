@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Games" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Games" %}</h1>
+    <p class="lede">{% translate "The titles OSEA runs competitions in. Each competition picks one." %}</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'competitions:game_create' %}">{% translate "Add a game" %}</a>
+</div>
+{% if games %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th scope="col">{% translate "Game" %}</th><th scope="col" class="hide-sm">{% translate "Player name label" %}</th><th scope="col" class="hide-sm">{% translate "Rank label" %}</th><th scope="col" class="num">{% translate "Competitions" %}</th><th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th></tr></thead>
+    <tbody>
+      {% for game in games %}
+      <tr>
+        <th scope="row">{{ game.name }}{% if not game.is_active %} <span class="badge badge-neutral">{% translate "Inactive" %}</span>{% endif %}</th>
+        <td class="hide-sm">{{ game.gamer_tag_label }}</td>
+        <td class="hide-sm">{{ game.rank_label }}</td>
+        <td class="num">{{ game.competition_count }}</td>
+        <td class="table-actions"><a href="{% url 'competitions:game_edit' game.pk %}">{% translate "Edit" %}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty-state"><h2>{% translate "No games yet" %}</h2><p>{% translate "Add the games OSEA runs, e.g. Valorant, Rocket League." %}</p></div>
+{% endif %}
+{% endblock %}

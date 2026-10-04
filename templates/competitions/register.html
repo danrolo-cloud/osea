@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Register a team" %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'competitions:detail' competition.pk %}">← {{ competition.name }}</a>
+<div class="card card-medium">
+  <p class="eyebrow">{{ competition.name }}</p>
+  <h1>{% translate "Register a team" %}</h1>
+  <p>{% blocktranslate with a=competition.roster_min b=competition.roster_max d=competition.registration_closes_at|date:"l, F j, g:i a" %}Start with a team name. You'll add {{ a }}–{{ b }} players next, then submit before {{ d }}{% endblocktranslate %}</p>
+  {% if form.fields.school.queryset %}
+    {% include "partials/form_errors.html" %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "partials/field.html" with field=form.school %}
+      {% include "partials/field.html" with field=form.team_name %}
+      <div class="form-actions"><button class="btn btn-primary" type="submit" {% if not competition.registration_is_open %}disabled{% endif %}>{% translate "Start registration" %}</button></div>
+    </form>
+  {% else %}
+    <div class="alert alert-warning"><p>{% translate "None of your approved schools can enter this competition." %}</p></div>
+  {% endif %}
+</div>
+{% endblock %}

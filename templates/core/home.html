@@ -24,10 +24,23 @@
 <div class="grid grid-2">
   <section class="card" aria-labelledby="competitions-heading">
     <h2 id="competitions-heading">{% translate "Competitions" %}</h2>
-    <div class="empty-state">
-      <h3>{% translate "No public competitions yet" %}</h3>
-      <p>{% translate "Schedules and standings will appear here once a competition is published." %}</p>
-    </div>
+    {% if competitions %}
+      <ul class="task-list">
+        {% for c in competitions %}
+          <li>
+            <div><a href="{% url 'competitions:detail' c.pk %}"><strong>{{ c.name }}</strong></a><br>
+              <span class="muted small">{% if c.registration_is_open %}{% blocktranslate with d=c.registration_closes_at|date:"M j" %}Registration open until {{ d }}{% endblocktranslate %}{% else %}{% blocktranslate with d=c.registration_opens_at|date:"M j" %}Registration opens {{ d }}{% endblocktranslate %}{% endif %}</span></div>
+            <span class="badge {% if c.registration_is_open %}badge-success{% else %}badge-info{% endif %}">{{ c.game }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="mt"><a href="{% url 'competitions:list' %}">{% translate "All competitions" %}</a></p>
+    {% else %}
+      <div class="empty-state">
+        <h3>{% translate "No competitions open right now" %}</h3>
+        <p><a href="{% url 'competitions:list' %}">{% translate "See all competitions" %}</a></p>
+      </div>
+    {% endif %}
   </section>
   <section class="card" aria-labelledby="coaches-heading">
     <h2 id="coaches-heading">{% translate "For teacher coaches" %}</h2>

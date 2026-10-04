@@ -235,3 +235,41 @@ class CoachAccess(models.Model):
     @property
     def can_be_approved(self):
         return self.school is not None and bool(self.coach.email_verified_at) and self.coach.is_active
+
+
+GRADE_CHOICES = [(g, _("Grade %(n)s") % {"n": g}) for g in range(1, 13)]
+
+
+class Student(models.Model):
+    """
+    A student at a school. Private: only that school's approved coaches and
+    OSEA administrators can see these records. Never shown on public pages.
+
+    Only what is needed to run competitions is stored: first name, last
+    initial and grade. Game-specific details (gamer tag, rank) are stored on
+    each roster entry instead, because they differ between games.
+    """
+
+    school = models.ForeignKey(School, on_delete=models.PROTECT, related_name="students")
+    first_name = models.CharField(_("first name"), max_length=100)
+    last_initial = models.CharField(_("last initial"), max_length=2)
+    grade = models.PositiveSmallIntegerField(_("grade"), choices=GRADE_CHOICES)
+    is_active = models.BooleanField(
+        _("still at this school"),
+        default=True,
+        help_text=_("Turn off when the student leaves. Their past rosters are kept."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.PROTECT, related_name="+")
+
+    class Meta:
+        ordering = ["first_name", "last_initial"]
+        verbose_name = _("student")
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_initial}."
+
+    def save(self, *args, **kwargs):
+        self.first_name = self.first_name.strip()
+        self.last_initial = self.last_initial.strip().rstrip(".").upper()[:2]
+        super().save(*args, **kwargs)

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{{ competition.name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'competitions:list' %}">← {% translate "All competitions" %}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ competition.game }} · {{ competition.school_year }}{% if competition.season %} · {{ competition.season }}{% endif %}</p>
+    <h1>{{ competition.name }}</h1>
+    {% if not competition.is_published %}<p><span class="badge badge-warning">{% translate "Not published: only administrators can see this page" %}</span></p>{% endif %}
+  </div>
+  {% if user.is_osea_admin %}<a class="btn btn-secondary" href="{% url 'competitions:manage_competition' competition.pk %}">{% translate "Manage" %}</a>{% endif %}
+</div>
+
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="h-about">
+    <h2 id="h-about">{% translate "About" %}</h2>
+    {% if competition.description %}<p>{{ competition.description|linebreaksbr }}</p>{% endif %}
+    <dl class="details">
+      <dt>{% translate "Registration" %}</dt>
+      <dd>{{ competition.registration_opens_at|date:"M j, g:i a" }} – {{ competition.registration_closes_at|date:"M j, Y, g:i a" }}<br><span class="muted small">{% translate "Toronto time" %}</span></dd>
+      <dt>{% translate "Who can enter" %}</dt><dd>{{ competition.allowed_levels_display }} {% translate "schools" %} · {{ competition.grade_range_label }}</dd>
+      <dt>{% translate "Teams" %}</dt><dd>{% blocktranslate with p=competition.players_per_team a=competition.roster_min b=competition.roster_max %}{{ p }} play at once; rosters of {{ a }}–{{ b }} players{% endblocktranslate %}</dd>
+      <dt>{% translate "Format" %}</dt><dd>{{ competition.get_format_display }}{% if competition.best_of %}, {% blocktranslate with n=competition.best_of %}best of {{ n }}{% endblocktranslate %}{% endif %}</dd>
+      {% if competition.rules_url %}<dt>{% translate "Rules" %}</dt><dd><a href="{{ competition.rules_url }}" rel="noopener">{% translate "Read the rulebook" %}</a></dd>{% endif %}
+    </dl>
+  </section>
+
+  {% if user.is_authenticated and user.is_coach %}
+  <section class="card" aria-labelledby="h-mine">
+    <h2 id="h-mine">{% translate "Your teams" %}</h2>
+    {% for r in my_registrations %}
+      <p><a href="{% url 'competitions:registration' r.pk %}">{{ r.team_name }}</a> <span class="muted small">({{ r.school.name }})</span> {% status_badge r.status r.get_status_display %}</p>
+    {% empty %}
+      <p class="muted">{% translate "None of your schools has registered yet." %}</p>
+    {% endfor %}
+    {% if competition.registration_is_open %}
+      {% if eligible_schools %}
+        <a class="btn btn-primary" href="{% url 'competitions:register' competition.pk %}">{% translate "Register a team" %}</a>
+      {% else %}
+        <p class="help-text">{% blocktranslate with levels=competition.allowed_levels_display|lower %}This competition is for {{ levels }} schools. None of your approved schools is eligible.{% endblocktranslate %}</p>
+      {% endif %}
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+
+{% if public_teams %}
+<section class="mt" aria-labelledby="h-teams">
+  <h2 id="h-teams">{% translate "Teams" %}</h2>
+  <div class="grid grid-2">
+    {% for division, teams in public_teams %}
+      <div class="table-wrap">
+        <table>
+          <caption>{{ division|default:_("Not yet placed in a division") }}</caption>
+          <thead><tr><th scope="col">{% translate "Team" %}</th><th scope="col">{% translate "School" %}</th></tr></thead>
+          <tbody>{% for t in teams %}<tr><th scope="row">{{ t.team_name }}</th><td>{{ t.school.name }}</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -20,6 +20,8 @@ def _display(obj, field_name):
     value = getattr(obj, field_name)
     if value is None or value == "":
         return ""
+    if isinstance(value, list | tuple):
+        return ", ".join(str(item) for item in value)
     if field.choices:
         return str(getattr(obj, f"get_{field_name}_display")())  # str() turns translatable labels into plain text
     if field.is_relation:

@@ -11,6 +11,7 @@ live site. Safe to run more than once.
 
 import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -18,7 +19,8 @@ from django.db import transaction
 from django.utils import timezone
 
 from accounts.models import User
-from schools.models import CoachAccess, Membership, School, SchoolBoard, SchoolYear
+from competitions.models import Competition, Division, Game, Registration, RosterEntry
+from schools.models import CoachAccess, Membership, School, SchoolBoard, SchoolYear, Student
 
 DEMO_PASSWORD = "osea-demo-2026"
 
@@ -143,9 +145,161 @@ class Command(BaseCommand):
                     },
                 )
 
+        self._competitions(year, schools, admin)
+
         self.stdout.write(f"{len(boards)} boards, {len(schools)} schools, {len(COACHES)} coaches, school year {year}.")
+        self.stdout.write(
+            "3 competitions: Valorant (opens Jan. 5), Smash singles (Oct. 8-27), Rocket League demo (open now)."
+        )
         self.stdout.write("Sign in as admin@example.org (administrator) or coach@mvdsb.example.ca (coach).")
         self.stdout.write(self.style.SUCCESS(f"Demo password for all accounts: {DEMO_PASSWORD}"))
+
+    def _competitions(self, year, schools, admin):
+        toronto = ZoneInfo("America/Toronto")
+        valorant = Game.objects.get_or_create(name="Valorant", defaults={"gamer_tag_label": "Riot ID"})[0]
+        smash = Game.objects.get_or_create(
+            name="Super Smash Bros. Ultimate", defaults={"gamer_tag_label": "Nintendo Switch name"}
+        )[0]
+        rocket = Game.objects.get_or_create(name="Rocket League", defaults={"gamer_tag_label": "Epic username"})[0]
+
+        def at(y, m, d, hh=9, mm=0):
+            return datetime.datetime(y, m, d, hh, mm, tzinfo=toronto)
+
+        Competition.objects.get_or_create(
+            name="Valorant Winter League 2027",
+            defaults=dict(
+                school_year=year,
+                game=valorant,
+                season="Winter 2027",
+                format=Competition.Format.LEAGUE,
+                best_of=3,
+                description="Five-a-side league for secondary schools. Weekly matches, playoffs in March.",
+                registration_opens_at=at(2027, 1, 5),
+                registration_closes_at=at(2027, 1, 22, 23, 59),
+                roster_deadline=at(2027, 2, 5, 23, 59),
+                allowed_levels=[School.Level.SECONDARY, School.Level.COMBINED],
+                min_grade=9,
+                max_grade=12,
+                players_per_team=5,
+                roster_min=5,
+                roster_max=7,
+                max_teams_per_school=2,
+                require_gamer_tag=True,
+                rank_requirement=Competition.RankRequirement.OPTIONAL,
+                is_published=True,
+            ),
+        )
+        Competition.objects.get_or_create(
+            name="Smash Bros. Fall Singles 2026",
+            defaults=dict(
+                school_year=year,
+                game=smash,
+                season="Fall 2026",
+                format=Competition.Format.BRACKET,
+                best_of=3,
+                description="One-on-one bracket. Each school may enter up to four players.",
+                registration_opens_at=at(2026, 10, 8),
+                registration_closes_at=at(2026, 10, 27, 23, 59),
+                roster_deadline=at(2026, 10, 27, 23, 59),
+                allowed_levels=[School.Level.ELEMENTARY, School.Level.SECONDARY, School.Level.COMBINED],
+                min_grade=6,
+                max_grade=12,
+                players_per_team=1,
+                roster_min=1,
+                roster_max=1,
+                max_teams_per_school=4,
+                require_gamer_tag=True,
+                rank_requirement=Competition.RankRequirement.OFF,
+                is_published=True,
+            ),
+        )
+        now = timezone.now().replace(minute=0, second=0, microsecond=0)
+        rl, created = Competition.objects.get_or_create(
+            name="Rocket League Demo League (fictional)",
+            defaults=dict(
+                school_year=year,
+                game=rocket,
+                season="Demo",
+                format=Competition.Format.LEAGUE,
+                best_of=5,
+                description="A made-up competition with registration open now, for trying the platform.",
+                registration_opens_at=now - datetime.timedelta(days=3),
+                registration_closes_at=now + datetime.timedelta(days=14),
+                roster_deadline=now + datetime.timedelta(days=28),
+                allowed_levels=[School.Level.ELEMENTARY, School.Level.SECONDARY, School.Level.COMBINED],
+                min_grade=7,
+                max_grade=12,
+                players_per_team=3,
+                roster_min=3,
+                roster_max=5,
+                max_teams_per_school=2,
+                require_gamer_tag=True,
+                rank_requirement=Competition.RankRequirement.REQUIRED,
+                is_published=True,
+                show_teams_publicly=True,
+            ),
+        )
+        if not created:
+            return
+        divisions = {
+            name: Division.objects.create(competition=rl, name=name, order=i)
+            for i, name in enumerate(["Middle School", "Bronze–Gold", "Platinum–Diamond", "Champion+"])
+        }
+
+        def students(school, names, grades):
+            return [
+                Student.objects.get_or_create(
+                    school=school, first_name=first, last_initial=initial, defaults={"grade": grade}
+                )[0]
+                for (first, initial), grade in zip(names, grades, strict=True)
+            ]
+
+        maplewood = students(
+            schools[0],
+            [("Avery", "K"), ("Jun", "P"), ("Mira", "S"), ("Theo", "B"), ("Lena", "D"), ("Omar", "F"), ("Ivy", "R")],
+            [9, 10, 11, 12, 10, 11, 9],
+        )
+        harbour = students(schools[4], [("Noah", "T"), ("Ella", "W"), ("Sam", "C"), ("Ruby", "L")], [7, 8, 8, 7])
+        erables = students(schools[5], [("Léa", "G"), ("Mathis", "R"), ("Chloé", "B"), ("Hugo", "L")], [10, 11, 12, 9])
+        ranks = ["Gold II", "Platinum I", "Diamond III", "Champion I", "Silver III", "Gold I", "Platinum III"]
+
+        def team(school, name, roster, status, creator, division=None):
+            registration = Registration.objects.create(
+                competition=rl, school=school, team_name=name, created_by=creator, status=status, division=division
+            )
+            for i, student in enumerate(roster):
+                RosterEntry.objects.create(
+                    registration=registration,
+                    student=student,
+                    gamer_tag=f"{student.first_name}_{i}rl",
+                    rank=ranks[i % len(ranks)],
+                )
+            if status != Registration.Status.DRAFT:
+                registration.submitted_at = registration.consent_confirmed_at = now - datetime.timedelta(days=1)
+                registration.submitted_by = registration.consent_confirmed_by = creator
+            if status == Registration.Status.APPROVED:
+                registration.decided_at, registration.decided_by = now, admin
+            registration.save()
+
+        jordan = User.objects.get(email="coach@mvdsb.example.ca")
+        team(schools[0], "Maplewood Lynx Purple", maplewood[:4], Registration.Status.SUBMITTED, jordan)
+        team(schools[0], "Maplewood Lynx Green", maplewood[4:6], Registration.Status.DRAFT, jordan)
+        team(
+            schools[4],
+            "Harbour Hawks",
+            harbour,
+            Registration.Status.APPROVED,
+            User.objects.get(email="chris.patel@lcdsb.example.ca"),
+            divisions["Middle School"],
+        )
+        team(
+            schools[5],
+            "Les Érables Esports",
+            erables[:3],
+            Registration.Status.APPROVED,
+            User.objects.get(email="marie.tremblay@csrn.example.ca"),
+            divisions["Platinum–Diamond"],
+        )
 
     def _user(self, email, first, last, role, verified):
         user, created = User.objects.get_or_create(

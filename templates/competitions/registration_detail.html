@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{{ registration.team_name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'core:dashboard' %}">← {% translate "Dashboard" %}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ competition.name }}</p>
+    <h1>{{ registration.team_name }}</h1>
+    <p class="lede">{{ registration.school.name }}{% if registration.division %} · {% translate "Division:" %} {{ registration.division }}{% endif %}</p>
+  </div>
+  {% status_badge registration.status registration.get_status_display %}
+</div>
+
+{# What happens next, in plain words #}
+{% if registration.status == 'draft' %}
+  <div class="alert alert-info"><p>{% blocktranslate with d=competition.registration_closes_at|date:"l, F j, g:i a" %}Draft: OSEA can't see drafts. Add your players, then submit before {{ d }}{% endblocktranslate %}</p></div>
+{% elif registration.status == 'changes_requested' %}
+  <div class="alert alert-warning"><p><strong>{% translate "OSEA asked for changes:" %}</strong> {{ registration.admin_message }}</p><p>{% blocktranslate with d=competition.roster_deadline|date:"l, F j, g:i a" %}Make the changes and submit again before {{ d }}{% endblocktranslate %}</p></div>
+{% elif registration.status == 'submitted' %}
+  <div class="alert alert-info"><p>{% translate "Submitted. OSEA will review your team and email you." %}</p></div>
+{% elif registration.status == 'waitlisted' %}
+  <div class="alert alert-warning"><p>{% translate "Your team is on the waitlist. OSEA will email you if a spot opens." %}{% if registration.admin_message %} {{ registration.admin_message }}{% endif %}</p></div>
+{% elif registration.status == 'approved' %}
+  <div class="alert alert-success"><p>{% translate "Approved!" %}{% if registration.admin_message %} {{ registration.admin_message }}{% endif %}</p></div>
+{% elif registration.status == 'withdrawn' %}
+  <div class="alert alert-error"><p>{% translate "This team has been withdrawn." %}{% if registration.admin_message %} {{ registration.admin_message }}{% endif %}</p></div>
+{% endif %}
+
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="h-roster">
+    <div class="card-header">
+      <h2 id="h-roster">{% translate "Roster" %}</h2>
+      <span class="muted small">{% blocktranslate with n=roster|length a=competition.roster_min b=competition.roster_max %}{{ n }} of {{ a }}–{{ b }} players{% endblocktranslate %}</span>
+    </div>
+    {% if roster %}
+      <ul class="task-list">
+        {% for entry in roster %}
+          <li>
+            <div><strong>{{ entry.student }}</strong> <span class="muted small">{% translate "Grade" %} {{ entry.student.grade }}</span><br>
+              <span class="small">{{ competition.game.gamer_tag_label }}: {{ entry.gamer_tag|default:"—" }}{% if competition.asks_for_rank %} · {{ competition.game.rank_label }}: {{ entry.rank|default:"—" }}{% endif %}</span></div>
+            {% if can_edit %}
+              <form class="inline-form" method="post" action="{% url 'competitions:remove_player' registration.pk entry.pk %}">{% csrf_token %}<button class="btn-link" type="submit">{% blocktranslate with s=entry.student %}Remove<span class="visually-hidden"> {{ s }}</span>{% endblocktranslate %}</button></form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state"><p>{% translate "No players yet." %}</p></div>
+    {% endif %}
+    <p class="help-text mt">{% translate "Player details are private: only your school's coaches and OSEA can see them." %}</p>
+  </section>
+
+  {% if can_edit %}
+  <section class="card" aria-labelledby="h-add">
+    <h2 id="h-add">{% translate "Add a player" %}</h2>
+    <form method="post" action="{% url 'competitions:add_player' registration.pk %}" novalidate>
+      {% csrf_token %}
+      {% include "partials/field.html" with field=add_form.student %}
+      <p class="or-divider">{% translate "or a new student:" %}</p>
+      <div class="grid grid-3">
+        {% include "partials/field.html" with field=add_form.first_name %}
+        {% include "partials/field.html" with field=add_form.last_initial %}
+        {% include "partials/field.html" with field=add_form.grade %}
+      </div>
+      {% include "partials/field.html" with field=add_form.gamer_tag %}
+      {% if add_form.rank %}{% include "partials/field.html" with field=add_form.rank %}{% endif %}
+      <button class="btn btn-secondary" type="submit">{% translate "Add to roster" %}</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+
+{% if can_edit %}
+<section class="card mt" aria-labelledby="h-submit">
+  <h2 id="h-submit">{% translate "Submit to OSEA" %}</h2>
+  {% if problems %}
+    <p>{% translate "Before you can submit:" %}</p>
+    <ul class="checklist">{% for p in problems %}<li class="todo">{{ p }}</li>{% endfor %}</ul>
+  {% else %}
+    <ul class="checklist"><li class="ok">{% translate "Roster meets this competition's rules." %}</li></ul>
+  {% endif %}
+  <form method="post" action="{% url 'competitions:submit' registration.pk %}" class="mt" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=submit_form.consent %}
+    <button class="btn btn-primary" type="submit" {% if problems %}disabled{% endif %}>{% translate "Submit registration" %}</button>
+  </form>
+  <details class="mt">
+    <summary>{% translate "Rename team" %}</summary>
+    <form method="post" action="{% url 'competitions:rename' registration.pk %}" novalidate>
+      {% csrf_token %}
+      {% include "partials/field.html" with field=rename_form.team_name %}
+      <button class="btn btn-secondary" type="submit">{% translate "Save name" %}</button>
+    </form>
+  </details>
+</section>
+{% endif %}
+
+{% if registration.status == 'submitted' and competition.registration_is_open %}
+<section class="card mt">
+  <form method="post" action="{% url 'competitions:unsubmit' registration.pk %}">
+    {% csrf_token %}
+    <p>{% translate "Need to change something? You can take the registration back to draft while registration is open." %}</p>
+    <button class="btn btn-secondary" type="submit">{% translate "Back to draft" %}</button>
+  </form>
+</section>
+{% endif %}
+
+{% if can_request_change %}
+<section class="card mt" aria-labelledby="h-change">
+  <h2 id="h-change">{% translate "Request a roster change" %}</h2>
+  <p class="help-text">{% blocktranslate with d=competition.roster_deadline|date:"l, F j, g:i a" %}To swap players, choose both. Approved rosters change only with OSEA's approval, until {{ d }}{% endblocktranslate %}</p>
+  <form method="post" action="{% url 'competitions:request_change' registration.pk %}" novalidate>
+    {% csrf_token %}
+    <div class="grid grid-2">
+      {% include "partials/field.html" with field=change_form.player_out %}
+      {% include "partials/field.html" with field=change_form.player_in %}
+      {% include "partials/field.html" with field=change_form.gamer_tag %}
+      {% if change_form.rank %}{% include "partials/field.html" with field=change_form.rank %}{% endif %}
+    </div>
+    {% include "partials/field.html" with field=change_form.reason %}
+    <button class="btn btn-secondary" type="submit">{% translate "Send request" %}</button>
+  </form>
+  <p class="help-text mt"><a href="{% url 'competitions:student_list' registration.school.pk %}">{% translate "Manage your school's student list" %}</a></p>
+</section>
+{% endif %}
+
+{% if roster_changes %}
+<section class="card mt" aria-labelledby="h-changes">
+  <h2 id="h-changes">{% translate "Roster change requests" %}</h2>
+  {% for change in roster_changes %}
+    <p>{{ change.description }} {% status_badge change.status change.get_status_display %}{% if change.decision_note %}<br><span class="small">{% translate "OSEA:" %} {{ change.decision_note }}</span>{% endif %}</p>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if registration.status != 'withdrawn' %}
+<details class="card mt">
+  <summary>{% translate "Withdraw this team" %}</summary>
+  <form method="post" action="{% url 'competitions:withdraw' registration.pk %}" class="mt">
+    {% csrf_token %}
+    <div class="form-field">
+      <label for="reason">{% translate "Reason (optional)" %}</label>
+      <input id="reason" type="text" name="reason" maxlength="300">
+    </div>
+    <button class="btn btn-danger" type="submit">{% translate "Withdraw team" %}</button>
+  </form>
+</details>
+{% endif %}
+
+<section class="card mt" aria-labelledby="h-history">
+  <h2 id="h-history">{% translate "History" %}</h2>
+  {% include "partials/history.html" with events=history %}
+</section>
+{% endblock %}

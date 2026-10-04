@@ -1,20 +1,30 @@
+import datetime
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import connection
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
 from accounts.permissions import admin_required, coach_required
 from audit.models import AuditEvent
+from competitions.models import Competition, Registration, RosterChange
 from schools.manage_views import schools_needing_membership_attention
 from schools.models import CoachAccess, Membership, SchoolYear
 
 
 @require_GET
 def home(request):
-    return render(request, "core/home.html")
+    competitions = (
+        Competition.objects.filter(is_published=True, registration_closes_at__gt=timezone.now())
+        .select_related("game")
+        .order_by("registration_opens_at")[:4]
+    )
+    return render(request, "core/home.html", {"competitions": competitions})
 
 
 @login_required
@@ -39,8 +49,37 @@ def admin_dashboard(request):
         "membership_attention": membership_attention[:5],
         "membership_attention_count": membership_attention.count(),
         "recent_activity": AuditEvent.objects.select_related("actor")[:6],
+        "to_review": Registration.objects.filter(status=Registration.Status.SUBMITTED)
+        .select_related("competition", "school")
+        .order_by("submitted_at")[:6],
+        "to_review_count": Registration.objects.filter(status=Registration.Status.SUBMITTED).count(),
+        "pending_roster_changes": RosterChange.objects.filter(status=RosterChange.Status.PENDING).select_related(
+            "registration__competition", "registration__school"
+        )[:6],
+        "deadlines": upcoming_deadlines(),
     }
     return render(request, "core/admin_dashboard.html", context)
+
+
+def upcoming_deadlines(days=21):
+    """Registration openings, closings and roster deadlines in the next few weeks, soonest first."""
+    now = timezone.now()
+    soon = now + datetime.timedelta(days=days)
+    items = []
+    competitions = Competition.objects.filter(is_published=True).filter(
+        Q(registration_opens_at__range=(now, soon))
+        | Q(registration_closes_at__range=(now, soon))
+        | Q(roster_deadline__range=(now, soon))
+    )
+    for c in competitions:
+        for when, label in [
+            (c.registration_opens_at, "Registration opens"),
+            (c.registration_closes_at, "Registration closes"),
+            (c.roster_deadline, "Roster deadline"),
+        ]:
+            if now <= when <= soon:
+                items.append({"when": when, "label": label, "competition": c})
+    return sorted(items, key=lambda item: item["when"])
 
 
 @coach_required
@@ -55,8 +94,29 @@ def coach_dashboard(request):
         }
     for access in approved:
         access.membership = memberships.get(access.school_id)
+    my_schools = [a.school for a in approved]
+    registrations = (
+        Registration.objects.filter(school__in=my_schools)
+        .exclude(status=Registration.Status.WITHDRAWN)
+        .select_related("competition", "school", "division")
+        .order_by("competition__registration_closes_at")
+    )
+    open_now = [
+        c
+        for c in Competition.objects.filter(
+            is_published=True,
+            registration_opens_at__lte=timezone.now(),
+            registration_closes_at__gt=timezone.now(),
+        ).select_related("game")
+        if any(c.school_is_eligible(s) for s in my_schools)
+    ]
     context = {
         "year": year,
+        "registrations_to_finish": [
+            r for r in registrations if r.status in (Registration.Status.DRAFT, Registration.Status.CHANGES_REQUESTED)
+        ],
+        "registrations": registrations,
+        "open_competitions": open_now,
         "approved": approved,
         "pending": [a for a in access_list if a.status == CoachAccess.Status.PENDING],
         "closed": [a for a in access_list if a.status in (CoachAccess.Status.DECLINED, CoachAccess.Status.REVOKED)],

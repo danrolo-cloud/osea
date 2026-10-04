@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Competitions" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Competitions" %}</h1>
+    <p class="lede">{% translate "OSEA competitions, their registration dates and who can enter." %}</p>
+  </div>
+</div>
+{% if competitions %}
+<div class="grid grid-2">
+  {% for c in competitions %}
+  <article class="card">
+    <p class="eyebrow">{{ c.game }}{% if c.season %} · {{ c.season }}{% endif %}</p>
+    <h2><a href="{% url 'competitions:detail' c.pk %}">{{ c.name }}</a></h2>
+    {% with state=c.registration_state %}
+      <p>
+        {% if state == 'open' %}<span class="badge badge-success">{% translate "Registration open" %}</span> {% blocktranslate with d=c.registration_closes_at|date:"l, F j, g:i a" %}until {{ d }}{% endblocktranslate %}
+        {% elif state == 'upcoming' %}<span class="badge badge-info">{% translate "Opens soon" %}</span> {% blocktranslate with d=c.registration_opens_at|date:"l, F j, g:i a" %}opens {{ d }}{% endblocktranslate %}
+        {% else %}<span class="badge badge-neutral">{% translate "Registration closed" %}</span>{% endif %}
+      </p>
+    {% endwith %}
+    <p class="muted small">{{ c.allowed_levels_display }} · {{ c.grade_range_label }} · {% blocktranslate with n=c.players_per_team %}{{ n }} per side{% endblocktranslate %}</p>
+    <a class="btn btn-secondary" href="{% url 'competitions:detail' c.pk %}">{% translate "Details" %}</a>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card empty-state"><h2>{% translate "No competitions published yet" %}</h2><p>{% translate "Check back soon." %}</p></div>
+{% endif %}
+{% endblock %}
