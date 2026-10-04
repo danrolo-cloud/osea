@@ -46,7 +46,8 @@ def _fail(*messages):
     raise ValidationError([str(m) for m in messages])
 
 
-def _coach_emails(registration):
+def coach_emails(registration):
+    """Email addresses of every approved coach at the registration's school, plus whoever created it."""
     emails = set(
         CoachAccess.objects.approved().filter(school=registration.school).values_list("coach__email", flat=True)
     )
@@ -56,7 +57,7 @@ def _coach_emails(registration):
 
 
 def _notify(request, registration, subject, template, **context):
-    recipients = _coach_emails(registration)
+    recipients = coach_emails(registration)
     if not recipients:
         return
     link = request.build_absolute_uri(reverse("competitions:registration", args=[registration.pk]))

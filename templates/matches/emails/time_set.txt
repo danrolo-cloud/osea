@@ -1,0 +1,9 @@
+{% autoescape off %}Hello,
+
+OSEA has set the time for {{ match.home.team_name }} v {{ match.away.team_name }} in {{ match.stage.competition }}:
+{{ match.scheduled_at|date:"l, F j, g:i a" }} (Toronto time)
+
+Match details: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

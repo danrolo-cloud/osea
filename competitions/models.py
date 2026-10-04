@@ -3,7 +3,7 @@ Games, competitions and registrations.
 
 Nothing about a particular game is built into the code. Administrators set
 every competition's rules (dates, eligibility, team size, roster limits,
-match format, required player details) when they set it up.
+required player details) and each stage's format when they set it up.
 """
 
 from django.conf import settings
@@ -40,12 +40,6 @@ class Game(models.Model):
 
 
 class Competition(models.Model):
-    class Format(models.TextChoices):
-        LEAGUE = "league", _("League (round robin)")
-        BRACKET = "bracket", _("Bracket / playoffs")
-        JUDGED = "judged", _("Judged challenge")
-        OTHER = "other", _("Other")
-
     class RankRequirement(models.TextChoices):
         OFF = "off", _("Don't ask")
         OPTIONAL = "optional", _("Ask, but optional")
@@ -63,9 +57,11 @@ class Competition(models.Model):
     season = models.CharField(_("season"), max_length=50, blank=True, help_text=_("e.g. Winter 2027."))
     description = models.TextField(_("public description"), blank=True)
     rules_url = models.URLField(_("rules link"), blank=True, help_text=_("Link to the rulebook for coaches."))
-    format = models.CharField(_("format"), max_length=20, choices=Format.choices, default=Format.LEAGUE)
     best_of = models.PositiveSmallIntegerField(
-        _("games per match (best of)"), null=True, blank=True, help_text=_("Leave blank if it doesn't apply.")
+        _("games per match (best of)"),
+        null=True,
+        blank=True,
+        help_text=_("Default for every stage; a stage can override it. Leave blank if it doesn't apply."),
     )
 
     # Dates (entered and shown in Toronto time)
@@ -319,3 +315,35 @@ class RosterChange(models.Model):
         if self.player_in:
             return _("Add %(in)s") % {"in": self.player_in}
         return _("Remove %(out)s") % {"out": self.player_out}
+
+
+class Announcement(models.Model):
+    """A message from OSEA to a competition's coaches, optionally one division only, optionally public."""
+
+    competition = models.ForeignKey(Competition, on_delete=models.CASCADE, related_name="announcements")
+    division = models.ForeignKey(
+        Division,
+        verbose_name=_("division"),
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="announcements",
+        help_text=_("Leave blank to send to the whole competition."),
+    )
+    title = models.CharField(_("title"), max_length=150)
+    body = models.TextField(_("message"), help_text=_("Links are clickable."))
+    is_public = models.BooleanField(
+        _("also show on the public competition page"),
+        default=False,
+        help_text=_("Leave off for coach-only messages."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = _("announcement")
+
+    def __str__(self):
+        return self.title

@@ -1,0 +1,39 @@
+{% load i18n %}{% comment %}
+  A stage's matches: bracket columns for elimination formats, rounds otherwise.
+  Needs `stage`, `rounds` (from matches.display.grouped_rounds) and `link_kind` ("admin" or "none").
+{% endcomment %}
+{% if not rounds %}
+  <p class="muted">{% translate "No matches yet." %}</p>
+{% elif stage.is_bracket %}
+  {% for heading, bracket, matches in rounds %}
+    {% ifchanged bracket %}{% if not forloop.first %}</div></div>{% endif %}
+      <div class="bracket-section">
+        {% if bracket == 'winners' %}<h3>{% translate "Winners bracket" %}</h3>{% elif bracket == 'losers' %}<h3>{% translate "Losers bracket" %}</h3>{% elif bracket == 'final' %}<h3>{% translate "Grand final" %}</h3>{% endif %}
+        <div class="bracket">
+    {% endifchanged %}
+    <div class="bracket-round">
+      <h4>{{ heading }}</h4>
+      <div class="bracket-matches">
+        {% for match in matches %}
+          {% if link_kind == "admin" %}{% url 'matches:match_edit' stage.pk match.pk as link %}{% include "matches/partials/match_card.html" with link=link link_text=_("Edit") %}
+          {% else %}{% include "matches/partials/match_card.html" with link="" %}{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% if forloop.last %}</div></div>{% endif %}
+  {% endfor %}
+{% else %}
+  <div class="round-list">
+    {% for heading, bracket, matches in rounds %}
+      <section>
+        <h3>{{ heading }}{% with first=matches.0 %}{% if first.play_from %} <span class="muted small">{{ first.play_from|date:"M j" }} – {{ first.play_by|date:"M j" }}</span>{% endif %}{% endwith %}</h3>
+        <div class="round-matches">
+          {% for match in matches %}
+            {% if link_kind == "admin" %}{% url 'matches:match_edit' stage.pk match.pk as link %}{% include "matches/partials/match_card.html" with link=link link_text=_("Edit") %}
+            {% else %}{% include "matches/partials/match_card.html" with link="" %}{% endif %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  </div>
+{% endif %}

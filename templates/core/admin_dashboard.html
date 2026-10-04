@@ -120,10 +120,26 @@
     {% endif %}
   </section>
 
+  <section class="card" aria-labelledby="h-overdue">
+    <h2 id="h-overdue">{% translate "Matches past their play-by date" %}</h2>
+    {% if overdue_matches %}
+      <ul class="task-list">
+        {% for m in overdue_matches %}
+          <li>
+            <div><strong>{{ m.home.team_name }} v {{ m.away.team_name }}</strong><br><span class="muted small">{{ m.stage.competition.name }} · {% blocktranslate with d=m.play_by|date:"M j" %}play by {{ d }}{% endblocktranslate %}</span></div>
+            <a class="btn btn-secondary" href="{% url 'matches:match_edit' m.stage_id m.pk %}">{% translate "Open" %}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">{% translate "Every playable match has a time or is still within its window." %}</p>
+    {% endif %}
+  </section>
+
   <section class="card" aria-labelledby="h-later">
     <div class="card-header"><h2 id="h-later">{% translate "Coming in later phases" %}</h2></div>
     <ul class="task-list">
-      <li><span>{% translate "Schedules, fixtures and announcements" %}</span><span class="badge badge-neutral">{% translate "Phase 3" %}</span></li>
+      <li><span>{% translate "Bracket advancement and Swiss pairings after round 1" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
       <li><span>{% translate "Disputed and unconfirmed results" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
     </ul>
   </section>

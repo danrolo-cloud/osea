@@ -14,6 +14,13 @@ AREAS = [
     ("membership", _("Memberships")),
     ("board", _("School boards")),
     ("year", _("School years")),
+    ("competition", _("Competition settings")),
+    ("registration", _("Registrations and rosters")),
+    ("roster_change", _("Roster change requests")),
+    ("stage", _("Stages")),
+    ("match", _("Matches and times")),
+    ("announcement", _("Announcements")),
+    ("student", _("Students")),
     ("export", _("Exports")),
     ("account", _("Account changes")),
 ]

@@ -122,7 +122,6 @@ class CompetitionSettingsTests(CompetitionTestData):
             "name": "Test League",
             "game": self.game.pk,
             "school_year": self.year.pk,
-            "format": "league",
             "registration_opens_at": "2027-01-05T09:00",
             "registration_closes_at": "2027-01-20T23:59",
             "roster_deadline": "2027-02-01T23:59",

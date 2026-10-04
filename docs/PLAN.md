@@ -1,6 +1,6 @@
 # OSEA platform: plan and decisions
 
-Last updated: 2026-10-04 (Phase 2 complete)
+Last updated: 2026-10-04 (Phase 3 complete)
 
 ## Goal
 
@@ -40,7 +40,15 @@ First complete workflow:
    limits (overall and per school), format and match length (best of N), which player details are required
    (in-game name, rank), and public visibility. Games are records admins create, with their own label for a
    player's in-game name (e.g. "Riot ID"). Nothing game-specific is built into the code. Standings points and
-   tiebreaker order will be added to the same settings in Phase 4.
+   tiebreaker order will be added in Phase 4.
+9. **Formats are chosen by administrators, per stage** (decided 2026-10-04). A competition has one or more stages
+   (e.g. Swiss, then playoffs). Each stage's format: round robin, double round robin, single elimination,
+   double elimination, Swiss, or custom (matches added by hand).
+10. **Coaches schedule their own matches** (decided 2026-10-04). One team's coach proposes a time, the other team's
+    coach accepts, and the time is set; no administrator approval. Either side can propose a change later; the
+    agreed time stands until a new one is accepted. Administrators can still set, change or cancel any match.
+11. **Announcements** are posted to a whole competition or one division, shown on those coaches' dashboards, and on
+    the public competition page only if marked public. They will be emailed once real email is approved.
 4. **Result confirmation.** The opposing coach confirms or disputes within 48 hours. No response sends it to the
    admin queue with one-click finalize (no automatic finalization). Disputes always go to an admin.
    Admins can enter or correct any result, and every change is logged.
@@ -88,7 +96,7 @@ automatic round-robin generation, result screenshot uploads, notification emails
 | 0. Foundation | Sign-in, roles, server-side permission checks, brand styling, tests running on GitHub | ✅ Oct 4 |
 | 1. Schools & coaches | School directory, coach sign-up and approval, yearly membership, activity log, CSV export | ✅ Oct 4 |
 | 2. Competitions & registration | Admin-managed games and competitions (own dates and rules), divisions, team registration with rosters, review queue, division assignment | ✅ Oct 4 |
-| 3. Schedules & announcements | Fixtures, publishing, reschedule/forfeit/cancel/bye, coach "next match", public schedule, announcements | mid-Nov |
+| 3. Schedules & announcements | Stages with admin-chosen formats, generated matches and brackets, coach-to-coach scheduling, cancellations and byes, public schedules, announcements | ✅ Oct 4 |
 | 4. Results & standings | Submit, confirm or dispute, admin finalize, standings with tiebreakers, public standings | early Dec |
 | 5. Pilot readiness | Hosting set up (with approval), admin two-factor sign-in, backup guide, pilot with a few coaches | before Dec 18 |
 | Launch | Real coaches onboarded; Valorant registration opens | January 2027 |
@@ -122,3 +130,19 @@ Targets assume regular review checkpoints with OSEA. The December pilot must fin
   In-game names and ranks are stored per roster, because they differ by game.
 - Public pages show competition details, and approved team and school names only if the admin turns on
   "show teams publicly". Students, rosters and coach contacts are never public.
+
+## Phase 3 notes
+
+- Match generation from the admin's seeding:
+  - Round robin uses the standard "circle" method; odd numbers give one bye per round.
+  - Elimination brackets use standard seeding, so seeds 1 and 2 can only meet in the final, and byes go to the
+    top seeds. Double elimination includes the losers bracket and a grand final.
+  - Swiss creates round 1 (top half v bottom half); later rounds need results, so they come in Phase 4.
+- Each round has a play window (start date + days per round), entered in Toronto time; admins can change any match.
+- Bracket matches are linked ("winner of match 5", "loser of match 2"). Byes already move teams forward;
+  results will move winners and losers forward in Phase 4.
+- Coaches see opposing coaches' names and email addresses only on a match their teams play against each other,
+  so they can arrange times directly. This is never shown publicly.
+- Stages are hidden from coaches and the public until an admin publishes them.
+- Not yet: forfeits (recorded with results in Phase 4), grand-final bracket reset, automatic Swiss pairing
+  after round 1, and match-time reminder emails.

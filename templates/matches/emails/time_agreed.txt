@@ -1,0 +1,11 @@
+{% autoescape off %}Hello,
+
+Your match in {{ match.stage.competition }} is set:
+
+{{ match.home.team_name }} v {{ match.away.team_name }} ({{ match.round_label|default:match.stage.name }})
+{{ match.scheduled_at|date:"l, F j, g:i a" }} (Toronto time)
+
+Match details: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

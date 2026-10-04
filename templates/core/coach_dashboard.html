@@ -12,7 +12,7 @@
   <a class="btn btn-secondary" href="{% url 'schools:request_school' %}">{% translate "Request another school" %}</a>
 </div>
 
-{% if needs_verification or pending or closed or registrations_to_finish %}
+{% if needs_verification or pending or closed or registrations_to_finish or awaiting or to_schedule %}
 <section class="card mb" aria-labelledby="h-attention">
   <h2 id="h-attention">{% translate "Needs your attention" %}</h2>
   <ul class="task-list">
@@ -20,6 +20,20 @@
       <li>
         <div><strong>{% translate "Confirm your email address" %}</strong><br><span class="muted small">{% blocktranslate with email=user.email %}We sent a link to {{ email }}. OSEA can't approve your access until you click it.{% endblocktranslate %}</span></div>
         <form method="post" action="{% url 'accounts:resend_verification' %}">{% csrf_token %}<button class="btn btn-secondary" type="submit">{% translate "Resend link" %}</button></form>
+      </li>
+    {% endif %}
+    {% for p in awaiting %}
+      <li>
+        <div><strong>{{ p.match.home.team_name }} v {{ p.match.away.team_name }}</strong><br>
+          <span class="muted small">{% blocktranslate with team=p.proposing_team.team_name when=p.proposed_time|date:"D M j, g:i a" %}{{ team }} proposed {{ when }}{% endblocktranslate %}</span></div>
+        <a class="btn btn-primary" href="{% url 'matches:coach_match' p.match.pk %}">{% translate "Answer" %}</a>
+      </li>
+    {% endfor %}
+    {% if to_schedule %}
+      <li>
+        <div><strong>{% blocktranslate count n=to_schedule|length %}{{ n }} match needs a time{% plural %}{{ n }} matches need a time{% endblocktranslate %}</strong><br>
+          <span class="muted small">{% translate "Agree on a time with the other team's coach." %}</span></div>
+        <a class="btn btn-primary" href="{% url 'matches:my_matches' %}">{% translate "Arrange" %}</a>
       </li>
     {% endif %}
     {% for r in registrations_to_finish %}
@@ -44,6 +58,36 @@
   </ul>
 </section>
 {% endif %}
+
+<div class="grid grid-2 mb">
+  <section class="card" aria-labelledby="h-next">
+    <div class="card-header"><h2 id="h-next">{% translate "Next matches" %}</h2><a href="{% url 'matches:my_matches' %}">{% translate "All my matches" %}</a></div>
+    {% if next_matches %}
+      <ul class="task-list">
+        {% for m in next_matches %}
+          <li>
+            <div><strong>{{ m.home.team_name }} v {{ m.away.team_name }}</strong><br><span class="muted small">{{ m.stage.competition.name }}{% if m.round_label %} · {{ m.round_label }}{% endif %}</span></div>
+            <a class="nowrap" href="{% url 'matches:coach_match' m.pk %}">{{ m.scheduled_at|date:"D M j, g:i a" }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">{% translate "No matches with an agreed time yet." %}</p>
+    {% endif %}
+  </section>
+  <section class="card" aria-labelledby="h-news">
+    <h2 id="h-news">{% translate "Announcements" %}</h2>
+    {% for a in announcements %}
+      <article class="announcement">
+        <h3>{{ a.title }}</h3>
+        <span class="when">{{ a.created_at|date:"M j" }} · {{ a.competition.name }}{% if a.division %} · {{ a.division }}{% endif %}</span>
+        <p>{{ a.body|urlize|linebreaksbr|truncatewords_html:60 }}</p>
+      </article>
+    {% empty %}
+      <p class="muted">{% translate "No announcements for your teams." %}</p>
+    {% endfor %}
+  </section>
+</div>
 
 <section aria-labelledby="h-schools">
   <h2 id="h-schools">{% translate "My schools" %}</h2>
@@ -116,7 +160,6 @@
 <section class="card mt" aria-labelledby="h-later">
   <h2 id="h-later">{% translate "Coming in later phases" %}</h2>
   <ul class="task-list">
-    <li><span>{% translate "Your teams' upcoming matches and announcements" %}</span><span class="badge badge-neutral">{% translate "Phase 3" %}</span></li>
     <li><span>{% translate "Submit and confirm results" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
   </ul>
 </section>

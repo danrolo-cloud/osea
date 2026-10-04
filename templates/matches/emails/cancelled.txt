@@ -1,0 +1,9 @@
+{% autoescape off %}Hello,
+
+OSEA has cancelled {{ match }} in {{ match.stage.competition }} ({{ match.stage.name }}).
+Reason: {{ match.cancel_reason }}
+
+Match details: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

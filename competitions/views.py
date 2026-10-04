@@ -9,6 +9,7 @@ never show students, rosters or coach contact details.
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
@@ -16,12 +17,13 @@ from django.views.decorators.http import require_POST
 
 from accounts.permissions import coach_required
 from audit.log import changes_between, history_for, record, snapshot
+from matches.display import grouped_rounds
 from schools.models import Student
 from schools.permissions import get_school_or_403, schools_for
 
 from . import services
 from .forms import AddPlayerForm, RegistrationStartForm, RosterChangeForm, StudentForm, SubmitForm, TeamNameForm
-from .models import Competition, Registration
+from .models import Announcement, Competition, Registration
 from .permissions import get_registration_or_403
 
 STUDENT_FIELDS = ["first_name", "last_initial", "grade", "is_active"]
@@ -59,13 +61,39 @@ def competition_detail(request, pk):
         my_schools = schools_for(request.user)
         my_registrations = competition.registrations.filter(school__in=my_schools).select_related("school")
         eligible_schools = [s for s in my_schools if competition.school_is_eligible(s)]
+    stages = [
+        (stage, grouped_rounds(stage.matches.select_related("home", "away", "home_source", "away_source", "winner")))
+        for stage in competition.stages.filter(is_published=True).select_related("division")
+    ]
     context = {
         "competition": competition,
+        "stages": stages,
+        "announcements": announcements_for(request.user, competition),
         "public_teams": public_teams,
         "my_registrations": my_registrations,
         "eligible_schools": eligible_schools,
     }
     return render(request, "competitions/competition_detail.html", context)
+
+
+def announcements_for(user, competition=None):
+    """
+    Announcements this person may read: public ones, plus coach-only ones for
+    competitions (and divisions) where their schools have a team.
+    """
+    announcements = Announcement.objects.select_related("competition", "division")
+    if competition is not None:
+        announcements = announcements.filter(competition=competition)
+    visible = Q(is_public=True) if competition is not None else Q(pk__in=[])
+    if user.is_authenticated and user.is_osea_admin:
+        return announcements
+    if user.is_authenticated and user.is_coach:
+        teams = Registration.objects.filter(school__in=schools_for(user)).exclude(status=Registration.Status.WITHDRAWN)
+        for team in teams.values("competition_id", "division_id"):
+            visible |= Q(competition_id=team["competition_id"], division__isnull=True)
+            if team["division_id"]:
+                visible |= Q(competition_id=team["competition_id"], division_id=team["division_id"])
+    return announcements.filter(visible)
 
 
 # ---------- Coach: registering ----------

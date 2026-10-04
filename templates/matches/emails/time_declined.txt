@@ -1,0 +1,9 @@
+{% autoescape off %}Hello,
+
+The other team declined your proposed time ({{ proposal.proposed_time|date:"l, F j, g:i a" }}) for {{ match.home.team_name }} v {{ match.away.team_name }}.
+{% if proposal.response_note %}Their note: {{ proposal.response_note }}
+{% endif %}
+Propose another time: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

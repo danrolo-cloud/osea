@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ stage.name }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'competitions:manage_competition' competition.pk %}">← {{ competition.name }}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ competition.name }}</p>
+    <h1>{{ stage.name }}</h1>
+    <p class="lede">{{ stage.get_format_display }}{% if stage.division %} · {{ stage.division }}{% else %} · {% translate "all divisions" %}{% endif %}{% if stage.effective_best_of %} · {% blocktranslate with n=stage.effective_best_of %}best of {{ n }}{% endblocktranslate %}{% endif %}{% if stage.swiss_rounds %} · {% blocktranslate with n=stage.swiss_rounds %}{{ n }} rounds{% endblocktranslate %}{% endif %}</p>
+    <p>{% if stage.is_published %}<span class="badge badge-success">{% translate "Published: coaches and the public can see these matches" %}</span>{% else %}<span class="badge badge-neutral">{% translate "Not published: only admins can see these matches" %}</span>{% endif %}</p>
+  </div>
+  <div class="btn-row">
+    <a class="btn btn-secondary" href="{% url 'matches:stage_edit' competition.pk stage.pk %}">{% translate "Stage settings" %}</a>
+    <a class="btn btn-secondary" href="{% url 'matches:match_create' stage.pk %}">{% translate "Add a match by hand" %}</a>
+  </div>
+</div>
+
+{% if overdue %}
+  <div class="alert alert-warning" role="note"><p>{% blocktranslate count n=overdue|length %}{{ n }} match is past its play-by date without an agreed time.{% plural %}{{ n }} matches are past their play-by date without an agreed time.{% endblocktranslate %}</p></div>
+{% endif %}
+
+{% if not match_count and stage.format != 'custom' %}
+<section class="card" aria-labelledby="h-generate">
+  <h2 id="h-generate">{% translate "Create the matches" %}</h2>
+  {% if teams %}
+    <p class="help-text">{% translate "Tick the teams to include and set their seeds (1 = strongest). Seeds decide byes and first-round pairings in brackets and Swiss; in round robin they only affect the order." %}</p>
+    <form method="post" action="{% url 'matches:stage_generate' stage.pk %}" novalidate>
+      {% csrf_token %}
+      <div class="table-wrap mb">
+        <table>
+          <thead><tr><th scope="col">{% translate "Include" %}</th><th scope="col">{% translate "Seed" %}</th><th scope="col">{% translate "Team" %}</th><th scope="col" class="hide-sm">{% translate "Division" %}</th></tr></thead>
+          <tbody>
+            {% for team in teams %}
+            <tr>
+              <td><input type="checkbox" name="include-{{ team.pk }}" id="include-{{ team.pk }}" checked aria-label="{% blocktranslate with t=team.team_name %}Include {{ t }}{% endblocktranslate %}"></td>
+              <td><input type="number" min="1" name="seed-{{ team.pk }}" value="{{ forloop.counter }}" class="input-narrow" aria-label="{% blocktranslate with t=team.team_name %}Seed for {{ t }}{% endblocktranslate %}"></td>
+              <th scope="row"><label for="include-{{ team.pk }}">{{ team.team_name }}</label><br><span class="muted small">{{ team.school.name }}</span></th>
+              <td class="hide-sm">{{ team.division|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="grid grid-2">
+        {% include "partials/field.html" with field=generate_form.first_day %}
+        {% include "partials/field.html" with field=generate_form.days_per_round %}
+      </div>
+      {% if stage.format == 'swiss' %}<p class="help-text">{% translate "Swiss: round 1 is created now. Later rounds pair teams with the same record, so they're created once results are entered (Phase 4)." %}</p>{% endif %}
+      {% if stage.is_bracket %}<p class="help-text">{% translate "Later rounds fill in automatically as earlier matches are decided. Byes go to the top seeds." %}</p>{% endif %}
+      <button class="btn btn-primary" type="submit">{% translate "Create matches" %}</button>
+    </form>
+  {% else %}
+    <div class="empty-state"><p>{% translate "No approved teams in this stage yet. Approve registrations (and place them in this stage's division) first." %}</p></div>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="mt" aria-labelledby="h-schedule">
+  <div class="page-header"><h2 id="h-schedule">{% if stage.is_bracket %}{% translate "Bracket" %}{% else %}{% translate "Schedule" %}{% endif %}</h2></div>
+  {% include "matches/partials/schedule.html" with link_kind="admin" %}
+</section>
+
+{% if match_count %}
+<details class="card mt">
+  <summary>{% translate "Start over" %}</summary>
+  <p class="mt">{% blocktranslate count n=match_count %}This removes the {{ n }} match in this stage, including any agreed time.{% plural %}This removes all {{ n }} matches in this stage, including agreed times.{% endblocktranslate %}</p>
+  <form method="post" action="{% url 'matches:stage_clear' stage.pk %}">{% csrf_token %}<button class="btn btn-danger" type="submit">{% translate "Remove all matches" %}</button></form>
+</details>
+{% else %}
+<details class="card mt">
+  <summary>{% translate "Delete this stage" %}</summary>
+  <form method="post" action="{% url 'matches:stage_delete' stage.pk %}" class="mt">{% csrf_token %}<button class="btn btn-danger" type="submit">{% translate "Delete stage" %}</button></form>
+</details>
+{% endif %}
+{% endblock %}

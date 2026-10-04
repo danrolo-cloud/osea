@@ -15,11 +15,13 @@ from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from django.db import models, transaction
 from django.utils import timezone
 
 from accounts.models import User
-from competitions.models import Competition, Division, Game, Registration, RosterEntry
+from competitions.models import Announcement, Competition, Division, Game, Registration, RosterEntry
+from matches import services as match_services
+from matches.models import Stage, TimeProposal
 from schools.models import CoachAccess, Membership, School, SchoolBoard, SchoolYear, Student
 
 DEMO_PASSWORD = "osea-demo-2026"
@@ -146,10 +148,12 @@ class Command(BaseCommand):
                 )
 
         self._competitions(year, schools, admin)
+        self._showcase(year, schools, admin)
 
         self.stdout.write(f"{len(boards)} boards, {len(schools)} schools, {len(COACHES)} coaches, school year {year}.")
         self.stdout.write(
-            "3 competitions: Valorant (opens Jan. 5), Smash singles (Oct. 8-27), Rocket League demo (open now)."
+            "4 competitions: Valorant (opens Jan. 5), Smash singles (Oct. 8-27), Rocket League demo (open now), "
+            "Valorant Fall Showcase (under way: Swiss stage published, double-elimination playoffs in draft)."
         )
         self.stdout.write("Sign in as admin@example.org (administrator) or coach@mvdsb.example.ca (coach).")
         self.stdout.write(self.style.SUCCESS(f"Demo password for all accounts: {DEMO_PASSWORD}"))
@@ -171,7 +175,6 @@ class Command(BaseCommand):
                 school_year=year,
                 game=valorant,
                 season="Winter 2027",
-                format=Competition.Format.LEAGUE,
                 best_of=3,
                 description="Five-a-side league for secondary schools. Weekly matches, playoffs in March.",
                 registration_opens_at=at(2027, 1, 5),
@@ -195,7 +198,6 @@ class Command(BaseCommand):
                 school_year=year,
                 game=smash,
                 season="Fall 2026",
-                format=Competition.Format.BRACKET,
                 best_of=3,
                 description="One-on-one bracket. Each school may enter up to four players.",
                 registration_opens_at=at(2026, 10, 8),
@@ -220,7 +222,6 @@ class Command(BaseCommand):
                 school_year=year,
                 game=rocket,
                 season="Demo",
-                format=Competition.Format.LEAGUE,
                 best_of=5,
                 description="A made-up competition with registration open now, for trying the platform.",
                 registration_opens_at=now - datetime.timedelta(days=3),
@@ -299,6 +300,100 @@ class Command(BaseCommand):
             Registration.Status.APPROVED,
             User.objects.get(email="marie.tremblay@csrn.example.ca"),
             divisions["Platinum–Diamond"],
+        )
+
+    def _showcase(self, year, schools, admin):
+        """A finished registration with stages, matches, proposals and announcements to explore."""
+        now = timezone.now().replace(minute=0, second=0, microsecond=0)
+        game = Game.objects.get(name="Valorant")
+        comp, created = Competition.objects.get_or_create(
+            name="Valorant Fall Showcase (fictional)",
+            defaults=dict(
+                school_year=year,
+                game=game,
+                season="Fall 2026",
+                best_of=3,
+                description="A made-up competition that is already under way, for trying schedules and brackets.",
+                registration_opens_at=now - datetime.timedelta(days=40),
+                registration_closes_at=now - datetime.timedelta(days=20),
+                roster_deadline=now + datetime.timedelta(days=20),
+                allowed_levels=[School.Level.SECONDARY, School.Level.COMBINED],
+                min_grade=9,
+                max_grade=12,
+                players_per_team=5,
+                roster_min=5,
+                roster_max=7,
+                is_published=True,
+                show_teams_publicly=True,
+            ),
+        )
+        if not created:
+            return
+        coaches = {
+            0: User.objects.get(email="coach@mvdsb.example.ca"),
+            5: User.objects.get(email="marie.tremblay@csrn.example.ca"),
+        }
+        names = [
+            (0, "Maplewood Lynx"),
+            (1, "Cedar Ridge Comets"),
+            (3, "St. Brigid Blaze"),
+            (5, "Érables Éclair"),
+            (6, "Northgate Knights"),
+            (0, "Maplewood Lynx B"),
+        ]
+        teams = [
+            Registration.objects.create(
+                competition=comp,
+                school=schools[i],
+                team_name=name,
+                status=Registration.Status.APPROVED,
+                created_by=coaches.get(i, admin),
+                decided_by=admin,
+                decided_at=now - datetime.timedelta(days=15),
+            )
+            for i, name in names
+        ]
+        swiss = Stage.objects.create(
+            competition=comp, name="Swiss stage", format=Stage.Format.SWISS, swiss_rounds=3, is_published=True, order=1
+        )
+        match_services.generate_stage(
+            swiss, admin, teams, first_day=timezone.localdate() - datetime.timedelta(days=2), days_per_round=7
+        )
+        playoffs = Stage.objects.create(
+            competition=comp, name="Playoffs", format=Stage.Format.DOUBLE_ELIMINATION, order=2, best_of=5
+        )
+        match_services.generate_stage(
+            playoffs, admin, teams, first_day=timezone.localdate() + datetime.timedelta(days=28), days_per_round=3
+        )
+
+        # Swiss round 1 pairs seed 1 v 4, 2 v 5, 3 v 6:
+        #   Maplewood Lynx v Érables Éclair: Marie (Érables) has proposed a time for Jordan to answer.
+        #   St. Brigid Blaze v Maplewood Lynx B: a time is already agreed.
+        def match_with(team):
+            return swiss.matches.filter(models.Q(home=team) | models.Q(away=team)).get()
+
+        TimeProposal.objects.create(
+            match=match_with(teams[3]),
+            proposed_time=now + datetime.timedelta(days=3, hours=4),
+            proposing_team=teams[3],
+            proposed_by=coaches[5],
+            note="Our lab is free Thursday after school.",
+        )
+        agreed = match_with(teams[5])
+        agreed.scheduled_at = now + datetime.timedelta(days=2, hours=3)
+        agreed.save()
+        Announcement.objects.create(
+            competition=comp,
+            title="Swiss round 1 is live",
+            body="Agree on your match time with the other coach by Sunday night. Rules: https://example.org/rules",
+            created_by=admin,
+        )
+        Announcement.objects.create(
+            competition=comp,
+            title="Playoff format announced",
+            body="The top teams go on to a double-elimination playoff in November.",
+            is_public=True,
+            created_by=admin,
         )
 
     def _user(self, email, first, last, role, verified):

@@ -31,7 +31,7 @@
       <dt>{% translate "Limits" %}</dt><dd>{% if competition.max_teams %}{% blocktranslate with n=competition.max_teams %}{{ n }} teams{% endblocktranslate %}{% else %}{% translate "No team limit" %}{% endif %} · {% if competition.max_teams_per_school %}{% blocktranslate with n=competition.max_teams_per_school %}{{ n }} per school{% endblocktranslate %}{% else %}{% translate "no per-school limit" %}{% endif %}</dd>
     </dl>
     <dl class="details">
-      <dt>{% translate "Format" %}</dt><dd>{{ competition.get_format_display }}{% if competition.best_of %} · {% blocktranslate with n=competition.best_of %}best of {{ n }}{% endblocktranslate %}{% endif %}</dd>
+      <dt>{% translate "Matches" %}</dt><dd>{% if competition.best_of %}{% blocktranslate with n=competition.best_of %}Best of {{ n }}{% endblocktranslate %}{% else %}—{% endif %} · {% translate "formats are set per stage" %}</dd>
       <dt>{% translate "Player details" %}</dt><dd>{{ competition.game.gamer_tag_label }} {% if competition.require_gamer_tag %}{% translate "(required)" %}{% else %}{% translate "(optional)" %}{% endif %}{% if competition.asks_for_rank %} · {{ competition.game.rank_label }} ({{ competition.get_rank_requirement_display|lower }}){% endif %}</dd>
     </dl>
   </div>
@@ -76,6 +76,37 @@
       </div>
     {% empty %}
       <p class="muted">{% translate "No roster changes waiting." %}</p>
+    {% endfor %}
+  </section>
+</div>
+
+<div class="grid grid-2 mt">
+  <section class="card" aria-labelledby="h-stages">
+    <div class="card-header"><h2 id="h-stages">{% translate "Stages and schedule" %}</h2><a class="btn btn-secondary" href="{% url 'matches:stage_create' competition.pk %}">{% translate "Add stage" %}</a></div>
+    {% if stages %}
+      <ul class="task-list">
+        {% for stage in stages %}
+          <li>
+            <div><a href="{% url 'matches:stage' stage.pk %}"><strong>{{ stage.name }}</strong></a><br>
+              <span class="muted small">{{ stage.get_format_display }} · {{ stage.division|default:_("all divisions") }} · {% blocktranslate count n=stage.match_count %}{{ n }} match{% plural %}{{ n }} matches{% endblocktranslate %}</span></div>
+            {% if stage.is_published %}<span class="badge badge-success">{% translate "Published" %}</span>{% else %}<span class="badge badge-neutral">{% translate "Draft" %}</span>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">{% translate "No stages yet. Add one and choose its format (round robin, single or double elimination, Swiss, or custom)." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-announcements">
+    <div class="card-header"><h2 id="h-announcements">{% translate "Announcements" %}</h2><a class="btn btn-secondary" href="{% url 'competitions:announcement_create' competition.pk %}">{% translate "Post" %}</a></div>
+    {% for a in announcements %}
+      <div class="announcement">
+        <h3><a href="{% url 'competitions:announcement_edit' competition.pk a.pk %}">{{ a.title }}</a></h3>
+        <span class="when">{{ a.created_at|date:"M j, Y" }} · {{ a.division|default:_("Whole competition") }}{% if a.is_public %} · {% translate "public" %}{% endif %}</span>
+      </div>
+    {% empty %}
+      <p class="muted">{% translate "No announcements yet." %}</p>
     {% endfor %}
   </section>
 </div>

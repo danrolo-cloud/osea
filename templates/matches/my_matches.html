@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "My matches" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "My matches" %}</h1>
+    <p class="lede">{% translate "Agree on match times directly with the other team's coach. All times are Toronto time." %}</p>
+  </div>
+</div>
+
+{% if awaiting %}
+<section class="card mb" aria-labelledby="h-awaiting">
+  <h2 id="h-awaiting">{% translate "Times waiting for your answer" %}</h2>
+  <ul class="task-list">
+    {% for p in awaiting %}
+      <li>
+        <div><strong>{{ p.match.home.team_name }} v {{ p.match.away.team_name }}</strong><br>
+          <span class="muted small">{% blocktranslate with team=p.proposing_team.team_name when=p.proposed_time|date:"D M j, g:i a" %}{{ team }} proposed {{ when }}{% endblocktranslate %}</span></div>
+        <a class="btn btn-primary" href="{% url 'matches:coach_match' p.match.pk %}">{% translate "Answer" %}</a>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section aria-labelledby="h-schedule">
+  <h2 id="h-schedule">{% translate "Needs a time" %}</h2>
+  {% if to_schedule %}
+    <div class="round-matches">
+      {% for match in to_schedule %}{% url 'matches:coach_match' match.pk as link %}{% include "matches/partials/match_card.html" with link=link link_text=_("Arrange time") %}{% endfor %}
+    </div>
+  {% else %}<p class="muted">{% translate "Nothing to arrange right now." %}</p>{% endif %}
+</section>
+
+<section class="mt" aria-labelledby="h-upcoming">
+  <h2 id="h-upcoming">{% translate "Upcoming" %}</h2>
+  {% if upcoming %}
+    <div class="round-matches">
+      {% for match in upcoming %}{% url 'matches:coach_match' match.pk as link %}{% include "matches/partials/match_card.html" with link=link %}{% endfor %}
+    </div>
+  {% else %}<p class="muted">{% translate "No upcoming matches with an agreed time." %}</p>{% endif %}
+</section>
+
+{% if waiting %}
+<section class="mt" aria-labelledby="h-waiting">
+  <h2 id="h-waiting">{% translate "Later rounds" %}</h2>
+  <p class="help-text">{% translate "Opponents fill in once earlier matches are decided." %}</p>
+  <div class="round-matches">
+    {% for match in waiting %}{% include "matches/partials/match_card.html" with link="" %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if other %}
+<section class="mt" aria-labelledby="h-past">
+  <h2 id="h-past">{% translate "Past, byes and cancelled" %}</h2>
+  <div class="round-matches">
+    {% for match in other %}{% url 'matches:coach_match' match.pk as link %}{% include "matches/partials/match_card.html" with link=link %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% autoescape off %}Hello,
+
+{{ proposal.proposing_team.team_name }} has proposed a time for your match in {{ match.stage.competition }}:
+
+{{ match.home.team_name }} v {{ match.away.team_name }} ({{ match.round_label|default:match.stage.name }})
+Proposed: {{ proposal.proposed_time|date:"l, F j, g:i a" }} (Toronto time)
+{% if proposal.note %}Note: {{ proposal.note }}
+{% endif %}
+Accept it, or suggest a different time: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

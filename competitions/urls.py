@@ -41,6 +41,21 @@ urlpatterns = [
     ),
     path("manage/competitions/<int:pk>/export/teams.csv", manage_views.export_registrations, name="export_teams"),
     path("manage/competitions/<int:pk>/export/rosters.csv", manage_views.export_rosters, name="export_rosters"),
+    path(
+        "manage/competitions/<int:competition_pk>/announcements/new/",
+        manage_views.announcement_form,
+        name="announcement_create",
+    ),
+    path(
+        "manage/competitions/<int:competition_pk>/announcements/<int:pk>/",
+        manage_views.announcement_form,
+        name="announcement_edit",
+    ),
+    path(
+        "manage/competitions/<int:competition_pk>/announcements/<int:pk>/delete/",
+        manage_views.announcement_delete,
+        name="announcement_delete",
+    ),
     path("manage/registrations/<int:pk>/", manage_views.registration_review, name="manage_registration"),
     path("manage/registrations/<int:pk>/add-player/", manage_views.admin_add_player, name="admin_add_player"),
     path(

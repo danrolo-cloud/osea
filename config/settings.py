@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "audit",
     "schools",
     "competitions",
+    "matches",
     "core",
 ]
 

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if stage %}{{ stage.name }}{% else %}{% translate "Add a stage" %}{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% if stage %}{% url 'matches:stage' stage.pk %}{% else %}{% url 'competitions:manage_competition' competition.pk %}{% endif %}">← {% translate "Back" %}</a>
+<div class="card card-medium">
+  <p class="eyebrow">{{ competition.name }}</p>
+  <h1>{% if stage %}{{ stage.name }}{% else %}{% translate "Add a stage" %}{% endif %}</h1>
+  <p class="help-text">{% translate "A stage is one part of the competition with its own format, e.g. a Swiss stage followed by single-elimination playoffs." %}</p>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.name %}
+    {% include "partials/field.html" with field=form.format %}
+    <div class="grid grid-2">
+      {% include "partials/field.html" with field=form.division %}
+      {% include "partials/field.html" with field=form.order %}
+      {% include "partials/field.html" with field=form.best_of %}
+      {% include "partials/field.html" with field=form.swiss_rounds %}
+    </div>
+    {% include "partials/field.html" with field=form.is_published %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save stage" %}</button></div>
+  </form>
+</div>
+{% endblock %}

@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from schools.models import GRADE_CHOICES, School, SchoolYear, Student
 
-from .models import Competition, Division, Game
+from .models import Announcement, Competition, Division, Game
 
 DATETIME_WIDGET = forms.DateTimeInput(attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M")
 
@@ -24,7 +24,7 @@ class CompetitionForm(forms.ModelForm):
     class Meta:
         model = Competition
         fields = [
-            "name", "game", "school_year", "season", "description", "rules_url", "format", "best_of",
+            "name", "game", "school_year", "season", "description", "rules_url", "best_of",
             "registration_opens_at", "registration_closes_at", "roster_deadline",
             "allowed_levels", "min_grade", "max_grade",
             "players_per_team", "roster_min", "roster_max", "max_teams", "max_teams_per_school",
@@ -44,11 +44,10 @@ class CompetitionForm(forms.ModelForm):
 
     # Groups of fields, shown as separate sections on the setup page.
     sections = [
-        (_("Basics"), ["name", "game", "school_year", "season", "description", "rules_url"]),
+        (_("Basics"), ["name", "game", "school_year", "season", "description", "rules_url", "best_of"]),
         (_("Dates"), ["registration_opens_at", "registration_closes_at", "roster_deadline"]),
         (_("Who can enter"), ["allowed_levels", "min_grade", "max_grade"]),
         (_("Teams and rosters"), ["players_per_team", "roster_min", "roster_max", "max_teams", "max_teams_per_school"]),
-        (_("Match format"), ["format", "best_of"]),
         (_("Player details to collect"), ["require_gamer_tag", "rank_requirement"]),
         (_("Visibility"), ["is_published", "show_teams_publicly"]),
     ]
@@ -201,3 +200,15 @@ class RegistrationDecisionForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields["division"].queryset = registration.competition.divisions.all()
         self.fields["division"].initial = registration.division
+
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ["title", "body", "division", "is_public"]
+        widgets = {"body": forms.Textarea(attrs={"rows": 6})}
+
+    def __init__(self, *args, competition, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["division"].queryset = competition.divisions.all()
+        self.fields["division"].empty_label = _("Everyone in the competition")

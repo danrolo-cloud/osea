@@ -47,6 +47,15 @@ _SECTIONS = {
     "division_create": "manage_competitions",
     "division_edit": "manage_competitions",
     "manage_registration": "manage_competitions",
+    "announcement_create": "manage_competitions",
+    "announcement_edit": "manage_competitions",
+    "stage_create": "manage_competitions",
+    "stage_edit": "manage_competitions",
+    "stage": "manage_competitions",
+    "match_create": "manage_competitions",
+    "match_edit": "manage_competitions",
+    "my_matches": "matches",
+    "coach_match": "matches",
 }
 
 

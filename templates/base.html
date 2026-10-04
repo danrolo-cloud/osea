@@ -32,6 +32,7 @@
         <ul class="nav-list">
           {% if user.is_authenticated %}
             <li><a href="{% url 'core:dashboard' %}" {% if nav_section == 'dashboard' %}aria-current="page"{% endif %}>{% translate "Dashboard" %}</a></li>
+            {% if user.is_coach %}<li><a href="{% url 'matches:my_matches' %}" {% if nav_section == 'matches' %}aria-current="page"{% endif %}>{% translate "My matches" %}</a></li>{% endif %}
             <li><a href="{% url 'competitions:list' %}" {% if nav_section == 'competitions' %}aria-current="page"{% endif %}>{% translate "Competitions" %}</a></li>
             <li><a href="{% url 'accounts:profile' %}" {% if nav_section == 'account' %}aria-current="page"{% endif %}>{% translate "Account" %}</a></li>
             <li class="nav-user"><span class="visually-hidden">{% translate "Signed in as" %} </span>{{ user.get_full_name }}</li>

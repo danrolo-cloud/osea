@@ -5,7 +5,7 @@ management, competition registration, schedules, results and standings.
 
 See [docs/PLAN.md](docs/PLAN.md) for the agreed scope, decisions and phases.
 
-## Current status: Phase 2 (competitions and registration)
+## Current status: Phase 3 (schedules and announcements)
 
 What works, with real data in the database:
 - **Coach sign-up:** account plus school request in one form, email confirmation link, "request another school".
@@ -31,7 +31,16 @@ Phase 2 adds, with real data in the database:
 - **Students list** per school, private to that school's coaches and OSEA.
 - **Public competition pages** with approved team and school names only (when the admin allows it).
 
-Not built yet: schedules, results and standings (Phases 3–4). Those dashboard panels are
+Phase 3 adds:
+- **Stages** with a format chosen by admins: round robin, double round robin, single or double elimination,
+  Swiss, or custom. Matches are generated from the admin's seeding, with byes and play windows; brackets show
+  "winner of match N" until earlier matches are decided.
+- **Coach-to-coach scheduling:** one coach proposes a time, the other accepts; reschedule the same way.
+  Admins can set times, add or edit matches, cancel and restore.
+- **My matches** for coaches, schedules and brackets on public competition pages (published stages only).
+- **Announcements** for a competition or division, optionally public.
+
+Not built yet: results and standings (Phase 4). Those dashboard panels are
 labelled "coming in later phases". Emails print to the terminal in development; nothing is sent.
 
 ## Running it on your computer
@@ -76,6 +85,7 @@ Both run automatically on GitHub for every push.
 | `accounts/` | User accounts, sign-in, sign-up, email confirmation, roles |
 | `schools/` | School boards, schools, school years, memberships, coach access and approval |
 | `competitions/` | Games, competitions, divisions, registrations, rosters and their rules (`services.py`) |
+| `matches/` | Stages, formats (`generators.py`), matches, scheduling rules (`services.py`) |
 | `audit/` | The activity log |
 | `core/` | Home page, dashboards, CSV export helper |
 | `templates/` | Page layouts (HTML) |

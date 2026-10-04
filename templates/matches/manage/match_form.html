@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if match %}{{ match }}{% else %}{% translate "Add a match" %}{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'matches:stage' stage.pk %}">← {{ stage.name }}</a>
+<div class="grid grid-2">
+  <div class="card">
+    <p class="eyebrow">{{ stage.competition.name }} · {{ stage.name }}</p>
+    <h1>{% if match %}{{ match }}{% else %}{% translate "Add a match" %}{% endif %}</h1>
+    {% if match %}<p>{{ match.home_label }} v {{ match.away_label }} · {{ match.get_state_display }}</p>{% endif %}
+    {% include "partials/form_errors.html" %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="grid grid-2">
+        {% include "partials/field.html" with field=form.home %}
+        {% include "partials/field.html" with field=form.away %}
+        {% include "partials/field.html" with field=form.round_number %}
+        {% include "partials/field.html" with field=form.round_label %}
+        {% include "partials/field.html" with field=form.play_from %}
+        {% include "partials/field.html" with field=form.play_by %}
+      </div>
+      {% include "partials/field.html" with field=form.scheduled_at %}
+      <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save match" %}</button></div>
+    </form>
+  </div>
+
+  {% if match %}
+  <div class="card">
+    {% if match.status == 'cancelled' %}
+      <h2>{% translate "Cancelled" %}</h2>
+      <p>{{ match.cancel_reason }}</p>
+      <form method="post" action="{% url 'matches:match_restore' match.pk %}">{% csrf_token %}<button class="btn btn-secondary" type="submit">{% translate "Restore match" %}</button></form>
+    {% else %}
+      <h2>{% translate "Cancel this match" %}</h2>
+      <form method="post" action="{% url 'matches:match_cancel' match.pk %}" novalidate>
+        {% csrf_token %}
+        <div class="form-field"><label for="reason">{% translate "Reason (sent to both teams)" %} <span class="required" aria-hidden="true">*</span></label><input id="reason" name="reason" type="text" maxlength="300"></div>
+        <button class="btn btn-danger" type="submit">{% translate "Cancel match" %}</button>
+      </form>
+      <p class="help-text mt">{% translate "Forfeits are recorded with results (Phase 4)." %}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

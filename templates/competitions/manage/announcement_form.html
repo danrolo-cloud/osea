@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Announcement" %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'competitions:manage_competition' competition.pk %}">← {{ competition.name }}</a>
+<div class="card card-medium">
+  <p class="eyebrow">{{ competition.name }}</p>
+  <h1>{% if announcement %}{% translate "Edit announcement" %}{% else %}{% translate "Post an announcement" %}{% endif %}</h1>
+  <p class="help-text">{% translate "Shown on the dashboards of coaches with teams in this competition (or one division). Emails will be sent once real email is switched on." %}</p>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.title %}
+    {% include "partials/field.html" with field=form.body %}
+    {% include "partials/field.html" with field=form.division %}
+    {% include "partials/field.html" with field=form.is_public %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save" %}</button></div>
+  </form>
+  {% if announcement %}
+    <form method="post" action="{% url 'competitions:announcement_delete' competition.pk announcement.pk %}" class="mt">{% csrf_token %}<button class="btn btn-link" type="submit">{% translate "Delete this announcement" %}</button></form>
+  {% endif %}
+</div>
+{% endblock %}

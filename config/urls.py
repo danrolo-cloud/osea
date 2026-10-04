@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("schools.urls")),
     path("", include("audit.urls")),
     path("", include("competitions.urls")),
+    path("", include("matches.urls")),
     path("account/", include("accounts.urls")),
     # Django's built-in back office. A fallback for a few trusted people,
     # not the main admin interface. Kept at a non-obvious address.

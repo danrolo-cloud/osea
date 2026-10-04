@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ match.home_label }} v {{ match.away_label }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'matches:my_matches' %}">← {% translate "My matches" %}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ match.stage.competition.name }} · {{ match.stage.name }}{% if match.round_label %} · {{ match.round_label }}{% endif %}</p>
+    <h1>{{ match.home_label }} <span class="muted">v</span> {{ match.away_label }}</h1>
+    <p class="lede">{% blocktranslate with n=match.number %}Match {{ n }}{% endblocktranslate %}{% if match.stage.effective_best_of %} · {% blocktranslate with n=match.stage.effective_best_of %}best of {{ n }}{% endblocktranslate %}{% endif %}{% if match.play_by %} · {% blocktranslate with a=match.play_from|date:"M j" b=match.play_by|date:"M j" %}play between {{ a }} and {{ b }}{% endblocktranslate %}{% endif %}</p>
+  </div>
+</div>
+
+{% if match.state == 'scheduled' %}
+  <div class="alert alert-success"><p><strong>{% translate "Agreed time:" %}</strong> {{ match.scheduled_at|date:"l, F j, g:i a" }} {% translate "(Toronto time)" %}</p></div>
+{% elif match.state == 'bye' %}
+  <div class="alert alert-info"><p>{% translate "Bye: no match to play this round." %}</p></div>
+{% elif match.state == 'cancelled' %}
+  <div class="alert alert-error"><p><strong>{% translate "Cancelled by OSEA." %}</strong> {{ match.cancel_reason }}</p></div>
+{% elif match.state == 'waiting' %}
+  <div class="alert alert-info"><p>{% translate "Waiting for earlier matches to decide who plays." %}</p></div>
+{% endif %}
+
+<div class="grid grid-2">
+  {% if match.is_playable %}
+  <section class="card" aria-labelledby="h-time">
+    <h2 id="h-time">{% if match.scheduled_at %}{% translate "Change the time" %}{% else %}{% translate "Arrange a time" %}{% endif %}</h2>
+    {% if pending %}
+      <div class="alert {% if can_answer %}alert-warning{% else %}alert-info{% endif %}">
+        <p><strong>{% blocktranslate with team=pending.proposing_team.team_name when=pending.proposed_time|date:"l, F j, g:i a" %}{{ team }} proposed {{ when }}{% endblocktranslate %}</strong>{% if pending.note %}<br>“{{ pending.note }}”{% endif %}</p>
+        {% if can_answer %}
+          <div class="btn-row">
+            <form method="post" action="{% url 'matches:accept' match.pk pending.pk %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% translate "Accept this time" %}</button></form>
+            <form method="post" action="{% url 'matches:decline' match.pk pending.pk %}" class="btn-row">{% csrf_token %}
+              <label class="visually-hidden" for="decline-note">{% translate "Note (optional)" %}</label>
+              <input id="decline-note" type="text" name="note" maxlength="300" placeholder="{% translate 'Note (optional)' %}">
+              <button class="btn btn-secondary" type="submit">{% translate "Decline" %}</button>
+            </form>
+          </div>
+        {% elif can_withdraw %}
+          <p class="small">{% translate "Waiting for the other team's coach to answer." %}</p>
+          <form method="post" action="{% url 'matches:withdraw' match.pk pending.pk %}">{% csrf_token %}<button class="btn-link" type="submit">{% translate "Withdraw proposal" %}</button></form>
+        {% endif %}
+      </div>
+    {% endif %}
+    <form method="post" action="{% url 'matches:propose' match.pk %}" novalidate>
+      {% csrf_token %}
+      {% include "partials/field.html" with field=form.proposed_time %}
+      {% include "partials/field.html" with field=form.note %}
+      <button class="btn {% if pending %}btn-secondary{% else %}btn-primary{% endif %}" type="submit">{% if pending %}{% translate "Suggest a different time" %}{% else %}{% translate "Propose this time" %}{% endif %}</button>
+      <p class="help-text">{% translate "The time is set as soon as the other team's coach accepts. Either team can propose a change later." %}</p>
+    </form>
+  </section>
+  {% endif %}
+
+  <section class="card" aria-labelledby="h-contacts">
+    <h2 id="h-contacts">{% translate "Other team's coaches" %}</h2>
+    <p class="help-text">{% translate "Shared only with coaches whose teams play each other." %}</p>
+    {% for access in opponent_coaches %}
+      <p>{{ access.coach.get_full_name }} <span class="muted small">({{ access.school.name }})</span><br><a href="mailto:{{ access.coach.email }}">{{ access.coach.email }}</a></p>
+    {% empty %}
+      <p class="muted">{% translate "No other coaches to show." %}</p>
+    {% endfor %}
+  </section>
+</div>
+
+{% if proposals %}
+<section class="card mt" aria-labelledby="h-history">
+  <h2 id="h-history">{% translate "Time proposals" %}</h2>
+  <ul class="task-list">
+    {% for p in proposals %}
+      <li><span>{{ p.proposed_time|date:"D M j, g:i a" }} · {{ p.proposing_team.team_name }}{% if p.response_note %} · “{{ p.response_note }}”{% endif %}</span><span class="badge {% if p.status == 'accepted' %}badge-success{% elif p.status == 'pending' %}badge-warning{% else %}badge-neutral{% endif %}">{{ p.get_status_display }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

@@ -13,6 +13,10 @@ from django.views.decorators.http import require_GET
 from accounts.permissions import admin_required, coach_required
 from audit.models import AuditEvent
 from competitions.models import Competition, Registration, RosterChange
+from competitions.views import announcements_for
+from matches.manage_views import overdue
+from matches.models import Match
+from matches.views import awaiting_my_answer, coach_matches
 from schools.manage_views import schools_needing_membership_attention
 from schools.models import CoachAccess, Membership, SchoolYear
 
@@ -57,6 +61,12 @@ def admin_dashboard(request):
             "registration__competition", "registration__school"
         )[:6],
         "deadlines": upcoming_deadlines(),
+        "overdue_matches": overdue(
+            Match.objects.filter(stage__is_published=True, status=Match.Status.OPEN, scheduled_at__isnull=True)
+            .exclude(home__isnull=True)
+            .exclude(away__isnull=True)
+            .select_related("stage__competition", "home", "away")
+        )[:8],
     }
     return render(request, "core/admin_dashboard.html", context)
 
@@ -110,7 +120,13 @@ def coach_dashboard(request):
         ).select_related("game")
         if any(c.school_is_eligible(s) for s in my_schools)
     ]
+    matches = list(coach_matches(request.user))
+    now = timezone.now()
     context = {
+        "awaiting": awaiting_my_answer(request.user),
+        "to_schedule": [m for m in matches if m.state == Match.State.TO_SCHEDULE],
+        "next_matches": [m for m in matches if m.state == Match.State.SCHEDULED and m.scheduled_at >= now][:4],
+        "announcements": announcements_for(request.user)[:5],
         "year": year,
         "registrations_to_finish": [
             r for r in registrations if r.status in (Registration.Status.DRAFT, Registration.Status.CHANGES_REQUESTED)

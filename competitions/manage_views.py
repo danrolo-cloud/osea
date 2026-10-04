@@ -13,8 +13,16 @@ from audit.log import changes_between, history_for, record, snapshot
 from core.csv_export import csv_response
 
 from . import services
-from .forms import AddPlayerForm, CompetitionForm, DivisionForm, GameForm, RegistrationDecisionForm, TeamNameForm
-from .models import Competition, Division, Game, Registration, RosterChange, RosterEntry
+from .forms import (
+    AddPlayerForm,
+    AnnouncementForm,
+    CompetitionForm,
+    DivisionForm,
+    GameForm,
+    RegistrationDecisionForm,
+    TeamNameForm,
+)
+from .models import Announcement, Competition, Division, Game, Registration, RosterChange, RosterEntry
 
 GAME_FIELDS = ["name", "gamer_tag_label", "rank_label", "is_active"]
 DIVISION_FIELDS = ["name", "description", "order"]
@@ -114,6 +122,8 @@ def competition_detail(request, pk):
             registration__competition=competition, status=RosterChange.Status.PENDING
         ).select_related("registration__school", "player_in", "player_out"),
         "history": history_for(competition)[:20],
+        "stages": competition.stages.select_related("division").annotate(match_count=Count("matches")),
+        "announcements": competition.announcements.select_related("division"),
     }
     return render(request, "competitions/manage/competition_detail.html", context)
 
@@ -384,3 +394,47 @@ def export_rosters(request, pk):
         target=competition,
     )
     return csv_response(f"rosters-{competition.pk}", header, rows)
+
+
+# ---------- Announcements ----------
+
+
+@admin_required
+def announcement_form(request, competition_pk, pk=None):
+    competition = get_object_or_404(Competition, pk=competition_pk)
+    announcement = get_object_or_404(Announcement, pk=pk, competition=competition) if pk else None
+    form = AnnouncementForm(request.POST or None, instance=announcement, competition=competition)
+    if request.method == "POST" and form.is_valid():
+        saved = form.save(commit=False)
+        saved.competition = competition
+        if announcement is None:
+            saved.created_by = request.user
+        saved.save()
+        record(
+            request.user,
+            "announcement.updated" if announcement else "announcement.posted",
+            f"{'Edited' if announcement else 'Posted'} announcement “{saved.title}” in {competition}",
+            target=competition,
+        )
+        messages.success(request, _("Announcement saved."))
+        return redirect("competitions:manage_competition", pk=competition.pk)
+    return render(
+        request,
+        "competitions/manage/announcement_form.html",
+        {"form": form, "competition": competition, "announcement": announcement},
+    )
+
+
+@admin_required
+@require_POST
+def announcement_delete(request, competition_pk, pk):
+    announcement = get_object_or_404(Announcement, pk=pk, competition_id=competition_pk)
+    announcement.delete()
+    record(
+        request.user,
+        "announcement.deleted",
+        f"Deleted announcement “{announcement.title}”",
+        target=announcement.competition,
+    )
+    messages.success(request, _("Announcement deleted."))
+    return redirect("competitions:manage_competition", pk=competition_pk)
