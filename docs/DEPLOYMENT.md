@@ -13,7 +13,7 @@ small changes.
 |---|---|---|
 | DigitalOcean (in OSEA's name, OSEA's billing) | Runs the website and the database | US$5/month app + ~US$15/month database (about US$245/year) |
 | A sending account in OSEA's Google Workspace (e.g. `platform@` your domain) | Sends sign-up, approval and match emails | free (Workspace for Nonprofits) |
-| Access to OSEA's domain settings (DNS) | Points e.g. `app.osea.ca` at the platform | usually already paid for |
+| Access to OSEA's domain settings (DNS) | Points `play.osea.ca` at the platform | usually already paid for |
 
 **Lower the cost:** DigitalOcean's *DO for Nonprofits & Social Enterprises* program gives eligible
 nonprofits working on education up to US$2,500 in one-time credits (eligibility is checked by a service
@@ -38,8 +38,8 @@ two-step sign-in for each, and record who has access in OSEA's records.
    | `DJANGO_DEBUG` | `false` |
    | `DJANGO_SECRET_KEY` | a long random value (*Encrypted*). Generate one with `python -c "import secrets; print(secrets.token_urlsafe(50))"` |
    | `DATABASE_URL` | filled in automatically when the database is attached |
-   | `DJANGO_ALLOWED_HOSTS` | the site address, e.g. `app.osea.ca` |
-   | `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://` + the site address |
+   | `DJANGO_ALLOWED_HOSTS` | `play.osea.ca` |
+   | `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://play.osea.ca` |
    | `OSEA_CLIENT_IP_HEADER` | `HTTP_DO_CONNECTING_IP` (lets sign-in limits see real visitor addresses) |
    | `DJANGO_EMAIL_BACKEND` | `django.core.mail.backends.smtp.EmailBackend` |
    | `EMAIL_HOST` | `smtp.gmail.com` |
@@ -52,15 +52,23 @@ two-step sign-in for each, and record who has access in OSEA's records.
    (A separate *test* copy should set `OSEA_ENVIRONMENT_LABEL=Test` so nobody mistakes it for the real one.)
 4. **Before each release** the app runs `python manage.py migrate` and `createcachetable`
    automatically (the "prepare-database" job), which updates the database structure.
-5. **Domain.** The platform gets its own sub-address (e.g. `esports.osea.ca`); OSEA's main Wix website
-   stays exactly as it is. In DigitalOcean, add the domain to the app; it shows one CNAME record. Add that
-   record where OSEA's domain is managed. If that is Wix: *Wix dashboard → Settings → Domains → the domain →
-   Manage DNS records → CNAME → Add record*, host name `esports`, value as DigitalOcean shows.
-   Only **add** a record: don't change the nameservers or the existing records, which keep the Wix site and
-   Google Workspace email working. DigitalOcean then provides the HTTPS certificate automatically
-   (it can take up to a day). Finally, add a "Competitions & coach sign-in" link on the Wix site pointing to
-   the new address. (Link to it rather than embedding it in a Wix page: the platform refuses to be shown
-   inside other sites, which protects sign-in.)
+5. **Domain: `play.osea.ca`.** OSEA's main Wix website stays exactly as it is. In DigitalOcean, open the app →
+   *Settings → Domains → Add domain* → `play.osea.ca`, choose "You manage your domain", and copy the
+   **CNAME** value it shows (something like `osea-platform-xxxxx.ondigitalocean.app`).
+
+   The domain was bought through GoDaddy, but its records may be managed either at GoDaddy or at Wix.
+   To find out: GoDaddy → *My Products* → osea.ca → *DNS* → **Nameservers**.
+   - Nameservers are GoDaddy's (`…domaincontrol.com`): in GoDaddy's *DNS Records*, **Add New Record** →
+     Type `CNAME`, Name `play`, Value = the DigitalOcean value, TTL 1 hour → Save.
+   - Nameservers are Wix's (`…wixdns.net`): add it in Wix instead: *Wix dashboard → Settings → Domains →
+     osea.ca → Manage DNS records → CNAME → Add record*, Host `play`, value as above.
+
+   Only **add** this one record. Don't change the nameservers or any existing record: they keep the Wix
+   site and Google Workspace email working. Back in DigitalOcean the domain shows as active once it sees
+   the record, usually within an hour (up to a day), and it sets up HTTPS automatically.
+   Finally, add a "Competitions & coach sign-in" link on the Wix site pointing to `https://play.osea.ca`.
+   (Link to it rather than embedding it in a Wix page: the platform refuses to be shown inside other
+   sites, which protects sign-in.)
 6. **Email (Google Workspace).** A Workspace administrator for OSEA:
    1. Creates a user just for the platform, e.g. `platform@osea.ca`. Free under Workspace for Nonprofits.
       Give it a long password stored in OSEA's password manager, and turn on 2-Step Verification for it.
