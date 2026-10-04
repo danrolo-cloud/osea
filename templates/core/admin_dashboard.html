@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Admin dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <p class="eyebrow">OSEA administrator</p>
+    <h1>Welcome, {{ user.first_name }}</h1>
+    <p class="lede">This is where you'll see everything that needs OSEA's attention.</p>
+  </div>
+</div>
+
+<div class="placeholder-note" role="note">
+  <p><strong>Phase 0 foundation:</strong> sign-in, roles and permission checks work. The panels below are
+  not connected to data yet. Each one says which phase will make it work.</p>
+</div>
+
+<div class="grid grid-2 mt">
+  <section class="card" aria-labelledby="h-coach-approvals">
+    <div class="card-header"><h2 id="h-coach-approvals">Coach access requests</h2><span class="badge badge-neutral">Phase 1</span></div>
+    <p class="help-text">Coaches asking to manage a school, waiting for you to approve or decline.</p>
+  </section>
+  <section class="card" aria-labelledby="h-membership">
+    <div class="card-header"><h2 id="h-membership">Membership records</h2><span class="badge badge-neutral">Phase 1</span></div>
+    <p class="help-text">Schools whose membership for this school year is pending or unpaid.</p>
+  </section>
+  <section class="card" aria-labelledby="h-registrations">
+    <div class="card-header"><h2 id="h-registrations">Registrations to review</h2><span class="badge badge-neutral">Phase 2</span></div>
+    <p class="help-text">Submitted team registrations, incomplete rosters and roster-change requests.</p>
+  </section>
+  <section class="card" aria-labelledby="h-deadlines">
+    <div class="card-header"><h2 id="h-deadlines">Upcoming deadlines</h2><span class="badge badge-neutral">Phase 2–3</span></div>
+    <p class="help-text">Registration closings, roster deadlines and competition start dates.</p>
+  </section>
+  <section class="card" aria-labelledby="h-results">
+    <div class="card-header"><h2 id="h-results">Results and disputes</h2><span class="badge badge-neutral">Phase 4</span></div>
+    <p class="help-text">Disputed results and results unconfirmed after 48 hours.</p>
+  </section>
+</div>
+{% endblock %}

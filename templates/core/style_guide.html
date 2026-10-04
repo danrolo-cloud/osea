@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Style guide{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Design reference</p>
+    <h1>Style guide</h1>
+    <p class="lede">The building blocks every OSEA screen uses. Everything on this page is fictional sample content.</p>
+  </div>
+</div>
+
+<div class="placeholder-note mt" role="note">
+  <p><strong>Sample content only.</strong> This page is a design reference for OSEA to review. It is not connected to any data.</p>
+</div>
+
+<section class="card mt" aria-labelledby="h-colours">
+  <h2 id="h-colours">Colours</h2>
+  <p class="help-text">Brand colours are placeholders until OSEA confirms exact codes. Neon green is never used as text on white.</p>
+  <div class="swatches">
+    <div class="swatch"><div class="swatch-chip" style="background:#1a0b33"></div><div class="swatch-label">Deep purple<br><code>#1a0b33</code></div></div>
+    <div class="swatch"><div class="swatch-chip" style="background:#4a1d96"></div><div class="swatch-label">Action purple<br><code>#4a1d96</code></div></div>
+    <div class="swatch"><div class="swatch-chip" style="background:#ede7fa"></div><div class="swatch-label">Purple tint<br><code>#ede7fa</code></div></div>
+    <div class="swatch"><div class="swatch-chip" style="background:#39ff14"></div><div class="swatch-label">Neon green<br><code>#39ff14</code></div></div>
+    <div class="swatch"><div class="swatch-chip" style="background:#1f2430"></div><div class="swatch-label">Body text<br><code>#1f2430</code></div></div>
+  </div>
+</section>
+
+<section class="card mt" aria-labelledby="h-type">
+  <h2 id="h-type">Typography</h2>
+  <h1>Montserrat heading level 1</h1>
+  <h2>Montserrat heading level 2</h2>
+  <h3>Montserrat heading level 3</h3>
+  <p>Body text is Roboto at 16px with generous line spacing, so long instructions stay readable on a phone between classes.</p>
+</section>
+
+<section class="card mt" aria-labelledby="h-buttons">
+  <h2 id="h-buttons">Buttons and statuses</h2>
+  <div class="btn-row">
+    <button class="btn btn-primary" type="button">Primary action</button>
+    <button class="btn btn-accent" type="button">Highlight action</button>
+    <button class="btn btn-secondary" type="button">Secondary</button>
+    <button class="btn btn-danger" type="button">Withdraw</button>
+    <button class="btn btn-link" type="button">Text link</button>
+    <button class="btn btn-primary" type="button" disabled>Disabled</button>
+  </div>
+  <p class="mt">
+    <span class="badge badge-neutral">Draft</span>
+    <span class="badge badge-info">Submitted</span>
+    <span class="badge badge-warning">Changes requested</span>
+    <span class="badge badge-success">Approved</span>
+    <span class="badge badge-neutral">Waitlisted</span>
+    <span class="badge badge-danger">Disputed</span>
+  </p>
+</section>
+
+<section class="card mt" aria-labelledby="h-alerts">
+  <h2 id="h-alerts">Messages</h2>
+  <div class="alert alert-success" role="status"><p>Registration submitted. OSEA will review it within two school days.</p></div>
+  <div class="alert alert-info"><p>Roster changes after the deadline need OSEA approval.</p></div>
+  <div class="alert alert-warning"><p>Your school's membership for 2026–27 is still pending.</p></div>
+  <div class="alert alert-error" role="alert"><p>This roster has 2 players. Rocket League rosters need at least 3.</p></div>
+  <p><span class="spinner" role="status" aria-label="Loading"></span> Loading state</p>
+</section>
+
+<section class="card mt" aria-labelledby="h-form">
+  <h2 id="h-form">Form fields</h2>
+  <form onsubmit="return false" novalidate>
+    <div class="grid grid-2">
+      <div class="form-field">
+        <label for="sg-team">Team name <span class="required" aria-hidden="true">*</span></label>
+        <input id="sg-team" type="text" value="Maplewood Lynx Purple" aria-describedby="sg-team-help">
+        <span class="help-text" id="sg-team-help">Shown publicly on schedules and standings.</span>
+      </div>
+      <div class="form-field has-error">
+        <label for="sg-tag">Gamer tag <span class="required" aria-hidden="true">*</span></label>
+        <input id="sg-tag" type="text" aria-invalid="true" aria-describedby="sg-tag-error">
+        <p class="field-error" id="sg-tag-error">Enter the player's in-game name.</p>
+      </div>
+    </div>
+  </form>
+</section>
+
+<section class="mt" aria-labelledby="h-table">
+  <h2 id="h-table">Tables</h2>
+  <div class="table-wrap">
+    <table>
+      <caption>Sample standings: Platinum–Diamond division (fictional)</caption>
+      <thead>
+        <tr><th scope="col">#</th><th scope="col">Team</th><th scope="col">School</th><th scope="col" class="num">W</th><th scope="col" class="num">L</th><th scope="col" class="num">Game diff.</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><th scope="row">Lynx Purple</th><td>Maplewood Secondary School</td><td class="num">5</td><td class="num">0</td><td class="num">+11</td></tr>
+        <tr><td>2</td><th scope="row">Harbour Hawks</th><td>Port Aldwin Collegiate</td><td class="num">4</td><td class="num">1</td><td class="num">+6</td></tr>
+        <tr><td>3</td><th scope="row">Cedar Comets</th><td>Cedar Ridge High School</td><td class="num">2</td><td class="num">3</td><td class="num">−2</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card mt" aria-labelledby="h-empty">
+  <h2 id="h-empty">Empty state</h2>
+  <div class="empty-state">
+    <h3>No teams registered yet</h3>
+    <p>Registration for the Winter 2027 Rocket League season opens January 5.</p>
+    <button class="btn btn-secondary" type="button">Start a registration</button>
+  </div>
+</section>
+{% endblock %}

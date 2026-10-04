@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block hero %}
+<section class="hero">
+  <div class="container">
+    <p class="eyebrow">Scholastic esports in Ontario</p>
+    <h1>Compete as a school. <span class="accent">Play as a team.</span></h1>
+    <p>OSEA runs esports competitions for Ontario elementary and secondary schools, led by teacher coaches.</p>
+    {% if not user.is_authenticated %}
+      <div class="btn-row">
+        <a class="btn btn-accent" href="{% url 'accounts:login' %}">Coach sign in</a>
+      </div>
+    {% else %}
+      <div class="btn-row">
+        <a class="btn btn-accent" href="{% url 'core:dashboard' %}">Go to my dashboard</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="competitions-heading">
+    <h2 id="competitions-heading">Competitions</h2>
+    <div class="empty-state">
+      <h3>No public competitions yet</h3>
+      <p>Schedules and standings will appear here once a competition is published.</p>
+    </div>
+  </section>
+  <section class="card" aria-labelledby="coaches-heading">
+    <h2 id="coaches-heading">For teacher coaches</h2>
+    <p>Coaches register school teams, manage rosters, see upcoming matches and submit results in one place.</p>
+    <p class="help-text">Coach accounts are approved by OSEA so that only staff at a school can manage that school's teams.</p>
+  </section>
+</div>
+{% endblock %}

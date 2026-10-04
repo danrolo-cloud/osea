@@ -1,0 +1,7 @@
+# Packages the site needs to run. Versions are pinned to a range so
+# security updates install automatically but big upgrades are deliberate.
+Django>=5.2,<5.3            # web framework (5.2 is a long-term-support release, supported to April 2028)
+psycopg[binary]>=3.2,<4     # PostgreSQL database driver
+dj-database-url>=3.0,<4     # reads the database address from one setting
+whitenoise>=6.9,<7          # serves CSS, fonts and scripts
+gunicorn>=23,<27            # production web server

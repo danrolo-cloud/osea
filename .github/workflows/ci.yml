@@ -1,0 +1,44 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: osea
+          POSTGRES_PASSWORD: osea
+          POSTGRES_DB: osea
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://osea:osea@localhost:5432/osea
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ci-only-not-a-real-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Code style
+        run: ruff check . && ruff format --check .
+      - name: Missing database migrations
+        run: python manage.py makemigrations --check --dry-run
+      - name: Production settings check
+        run: python manage.py check --deploy --fail-level WARNING
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput
+      - name: Tests
+        # Tests use plain HTTP, so the production "always use HTTPS" redirect is turned off here only.
+        env:
+          DJANGO_SECURE_SSL_REDIRECT: "false"
+        run: python manage.py test

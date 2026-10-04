@@ -1,0 +1,26 @@
+# Secrets and local settings
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Django
+staticfiles/
+media/
+*.sqlite3
+
+# Database dumps and exports (may contain personal information)
+*.dump
+*.sql
+*.sql.gz
+exports/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

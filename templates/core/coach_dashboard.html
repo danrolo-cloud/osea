@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Coach dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Teacher coach</p>
+    <h1>Welcome, {{ user.first_name }}</h1>
+    <p class="lede">Your teams, registrations, matches and results in one place.</p>
+  </div>
+</div>
+
+<div class="placeholder-note" role="note">
+  <p><strong>Phase 0 foundation:</strong> you are signed in as a coach and can only reach coach pages. The panels below
+  are not connected to data yet. Each one says which phase will make it work.</p>
+</div>
+
+<div class="grid grid-2 mt">
+  <section class="card" aria-labelledby="h-attention">
+    <div class="card-header"><h2 id="h-attention">Needs your attention</h2><span class="badge badge-neutral">Phase 1–4</span></div>
+    <p class="help-text">School access status, incomplete registrations, and results waiting for you.</p>
+  </section>
+  <section class="card" aria-labelledby="h-registrations">
+    <div class="card-header"><h2 id="h-registrations">My registrations</h2><span class="badge badge-neutral">Phase 2</span></div>
+    <p class="help-text">Drafts, submitted registrations, and any changes OSEA has asked for.</p>
+  </section>
+  <section class="card" aria-labelledby="h-matches">
+    <div class="card-header"><h2 id="h-matches">Next matches</h2><span class="badge badge-neutral">Phase 3</span></div>
+    <p class="help-text">Your teams' upcoming matches, in Toronto time.</p>
+  </section>
+  <section class="card" aria-labelledby="h-announcements">
+    <div class="card-header"><h2 id="h-announcements">Announcements</h2><span class="badge badge-neutral">Phase 3</span></div>
+    <p class="help-text">Updates for the competitions your teams are in.</p>
+  </section>
+</div>
+{% endblock %}
