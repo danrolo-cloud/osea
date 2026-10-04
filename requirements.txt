@@ -1,9 +1,9 @@
 # Packages the site needs to run. Versions are pinned to a range so
 # security updates install automatically but big upgrades are deliberate.
-Django>=5.2,<5.3            # web framework (5.2 is a long-term-support release, supported to April 2028)
-psycopg[binary]>=3.2,<4     # PostgreSQL database driver
-dj-database-url>=3.0,<4     # reads the database address from one setting
-whitenoise>=6.9,<7          # serves CSS, fonts and scripts
-gunicorn>=23,<27            # production web server
-pyotp>=2.9,<3               # two-step sign-in codes (authenticator apps)
-qrcode>=8,<9                # QR code for setting up an authenticator app
+Django>=5.2.17,<5.3            # web framework (5.2 is a long-term-support release, supported to April 2028)
+psycopg[binary]>=3.3.6,<4     # PostgreSQL database driver
+dj-database-url>=3.1.2,<4     # reads the database address from one setting
+whitenoise>=6.12.0,<7          # serves CSS, fonts and scripts
+gunicorn>=26.2.0,<27            # production web server
+pyotp>=2.10.0,<3               # two-step sign-in codes (authenticator apps)
+qrcode>=8.2,<9                # QR code for setting up an authenticator app
