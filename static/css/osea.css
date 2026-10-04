@@ -18,27 +18,30 @@
 
 /* ---------- Design tokens ---------- */
 :root {
-  /* Brand (placeholders until OSEA confirms exact codes) */
-  --purple-950: #1a0b33;  /* header, footer, dark surfaces */
-  --purple-800: #2e1260;
-  --purple-700: #4a1d96;  /* primary actions, links on light backgrounds */
-  --purple-200: #c9b8f0;  /* muted text on dark purple */
-  --purple-100: #ede7fa;
-  --purple-50:  #f6f2fd;
+  /* Brand. #462a66, #312a5e and #952180 are taken from the official OSEA logo.
+     The neon green code is ours; replace it if OSEA has an official one. */
+  --purple-950: #1f1233;  /* header, footer, dark surfaces (a darker shade of the logo purple) */
+  --purple-800: #352050;  /* hover on purple buttons */
+  --purple-700: #462a66;  /* OSEA deep purple: primary actions, headings, links */
+  --purple-200: #c9b8e0;  /* muted text on dark purple */
+  --purple-100: #ece6f3;
+  --purple-50:  #f6f3fa;
+  --logo-navy:  #312a5e;  /* start of the logo gradient */
+  --magenta:    #952180;  /* end of the logo gradient: small accents only */
   --neon:       #39ff14;  /* accent: on dark purple, or as a fill with dark text */
 
   /* Neutrals */
   --ink:        #1f2430;  /* body text */
   --ink-muted:  #5b6070;  /* secondary text */
-  --line:       #dcd8e6;  /* borders */
+  --line:       #ddd7e5;  /* borders */
   --surface:    #ffffff;
-  --page:       #f7f6fb;
+  --page:       #f7f5fa;
 
   /* Status colours (all pass WCAG AA on their tints) */
   --success:    #1b6e0a;  --success-bg: #e8f8e3;
   --warning:    #8a5a00;  --warning-bg: #fff6e0;
   --danger:     #a4161a;  --danger-bg:  #fdecec;
-  --info:       #4a1d96;  --info-bg:    #f3eefc;
+  --info:       #462a66;  --info-bg:    #f3eefa;
 
   --font-body: "Roboto", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --font-head: "Montserrat", "Roboto", system-ui, sans-serif;
@@ -66,7 +69,7 @@ body {
   min-height: 100vh;
 }
 main { flex: 1; }
-h1, h2, h3, h4 { font-family: var(--font-head); line-height: 1.2; margin: 0 0 0.5em; color: var(--purple-950); }
+h1, h2, h3, h4 { font-family: var(--font-head); line-height: 1.2; margin: 0 0 0.5em; color: var(--purple-700); }
 h1 { font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.2rem); font-weight: 800; }
 h2 { font-size: 1.35rem; font-weight: 700; }
 h3 { font-size: 1.1rem; font-weight: 700; }
@@ -100,12 +103,8 @@ code { font-size: 0.9em; background: var(--purple-50); padding: 0.1em 0.35em; bo
 /* ---------- Header and navigation ---------- */
 .site-header { background: var(--purple-950); color: #fff; border-bottom: 3px solid var(--neon); }
 .site-header .container { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 64px; }
-.brand { display: inline-flex; align-items: center; gap: 0.6rem; color: #fff; text-decoration: none; }
-.brand-mark {
-  font-family: var(--font-head); font-weight: 800; font-size: 1.25rem; letter-spacing: 0.04em;
-  background: var(--neon); color: var(--purple-950); padding: 0.15rem 0.5rem; border-radius: 4px;
-}
-.brand-name { font-family: var(--font-head); font-weight: 600; font-size: 0.95rem; color: var(--purple-100); }
+.brand { display: inline-flex; align-items: center; padding: 0.25rem 0; }
+.brand img { display: block; height: 40px; width: auto; }
 .brand:focus-visible { box-shadow: 0 0 0 3px var(--neon); }
 
 .nav-list { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 0.25rem; }
@@ -141,7 +140,8 @@ code { font-size: 0.9em; background: var(--purple-50); padding: 0.1em 0.35em; bo
   .nav-user { padding: 0.5rem 0.75rem; }
 }
 @media (max-width: 459px) {
-  .brand-name, .env-extra { display: none; }
+  .env-extra { display: none; }
+  .brand img { height: 32px; }
 }
 
 /* ---------- Page layout ---------- */
@@ -149,7 +149,7 @@ code { font-size: 0.9em; background: var(--purple-50); padding: 0.1em 0.35em; bo
 .page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
 .page-header h1 { margin: 0; }
 .page-header .lede { margin: 0.35rem 0 0; color: var(--ink-muted); }
-.eyebrow { font-family: var(--font-head); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--purple-700); margin: 0 0 0.35rem; }
+.eyebrow { font-family: var(--font-head); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--magenta); margin: 0 0 0.35rem; }
 
 .grid { display: grid; gap: 1rem; }
 @media (min-width: 700px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: repeat(3, 1fr); } }
@@ -163,9 +163,10 @@ code { font-size: 0.9em; background: var(--purple-50); padding: 0.1em 0.35em; bo
 .card-header h2, .card-header h3 { margin: 0; }
 .mt { margin-top: 1rem; }
 .card-narrow { max-width: 440px; margin: 0 auto; }
+.card-logo { display: block; width: 180px; height: auto; margin: 0 auto 1.25rem; }
 
 .stat { display: flex; flex-direction: column; gap: 0.15rem; }
-.stat-value { font-family: var(--font-head); font-weight: 800; font-size: 2rem; color: var(--purple-950); line-height: 1; }
+.stat-value { font-family: var(--font-head); font-weight: 800; font-size: 2rem; color: var(--purple-700); line-height: 1; }
 .stat-label { color: var(--ink-muted); font-size: 0.9rem; }
 
 /* ---------- Hero (public home) ---------- */
@@ -230,9 +231,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { border-color
 /* ---------- Tables ---------- */
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-caption { text-align: left; padding: 0.75rem 1rem; font-weight: 700; font-family: var(--font-head); color: var(--purple-950); }
+caption { text-align: left; padding: 0.75rem 1rem; font-weight: 700; font-family: var(--font-head); color: var(--purple-700); }
 th, td { text-align: left; padding: 0.65rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
-thead th { background: var(--purple-50); color: var(--purple-950); font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+thead th { background: var(--purple-50); color: var(--purple-700); font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
 tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
 tbody tr:hover { background: #fbfaff; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }

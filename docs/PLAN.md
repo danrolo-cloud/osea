@@ -43,7 +43,19 @@ First complete workflow:
 5. **Membership.** Coaches may register while membership is pending; an admin cannot approve a registration until
    the school's membership is confirmed or a recorded exception is made. Fees are recorded by hand.
 
+6. **Registration windows are per competition.** Admins set each competition's own registration opening and closing
+   dates (and roster deadline); nothing is fixed platform-wide. Example: Super Smash Bros. Ultimate registration
+   opens 2026-10-08 and closes 2026-10-27. Rules differ by title too: Smash rosters may be a single player, Rocket League 3–5.
+
 Registration statuses: draft → submitted → (changes requested → submitted) → approved / waitlisted; withdrawn at any point.
+
+## Brand
+
+- Official logos are in `docs/brand/` (full-colour bilingual "OSEA | AOSES", and white with "Play. Learn. Grow.").
+- OSEA deep purple `#462a66` and the logo gradient `#312a5e` → `#952180` are sampled from the official logo.
+- Neon green `#39ff14` is a stand-in until OSEA supplies an official code. It is never used as text on white
+  (fails contrast); it appears on dark purple or as a button fill with dark text.
+- Headings Montserrat, body Roboto. All text colour pairs checked against WCAG AA.
 
 ## Deferred (not in the first release)
 

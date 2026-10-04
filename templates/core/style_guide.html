@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Style guide{% endblock %}
 
 {% block content %}
@@ -16,13 +17,23 @@
 
 <section class="card mt" aria-labelledby="h-colours">
   <h2 id="h-colours">Colours</h2>
-  <p class="help-text">Brand colours are placeholders until OSEA confirms exact codes. Neon green is never used as text on white.</p>
+  <p class="help-text">Purples and magenta come from the official OSEA logo. Neon green is never used as text on white.</p>
   <div class="swatches">
-    <div class="swatch"><div class="swatch-chip" style="background:#1a0b33"></div><div class="swatch-label">Deep purple<br><code>#1a0b33</code></div></div>
-    <div class="swatch"><div class="swatch-chip" style="background:#4a1d96"></div><div class="swatch-label">Action purple<br><code>#4a1d96</code></div></div>
-    <div class="swatch"><div class="swatch-chip" style="background:#ede7fa"></div><div class="swatch-label">Purple tint<br><code>#ede7fa</code></div></div>
+    <div class="swatch"><div class="swatch-chip" style="background:#462a66"></div><div class="swatch-label">OSEA deep purple<br><code>#462a66</code></div></div>
+    <div class="swatch"><div class="swatch-chip" style="background:#1f1233"></div><div class="swatch-label">Dark surface<br><code>#1f1233</code></div></div>
+    <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(90deg,#312a5e,#952180)"></div><div class="swatch-label">Logo gradient<br><code>#312a5e → #952180</code></div></div>
     <div class="swatch"><div class="swatch-chip" style="background:#39ff14"></div><div class="swatch-label">Neon green<br><code>#39ff14</code></div></div>
+    <div class="swatch"><div class="swatch-chip" style="background:#ece6f3"></div><div class="swatch-label">Purple tint<br><code>#ece6f3</code></div></div>
     <div class="swatch"><div class="swatch-chip" style="background:#1f2430"></div><div class="swatch-label">Body text<br><code>#1f2430</code></div></div>
+  </div>
+</section>
+
+<section class="card mt" aria-labelledby="h-logos">
+  <h2 id="h-logos">Logos</h2>
+  <p class="help-text">White logo on dark backgrounds (header), full-colour bilingual logo on light backgrounds (sign-in page). Originals are kept in <code>docs/brand/</code>.</p>
+  <div class="grid grid-2">
+    <div style="background:#1f1233;padding:1.5rem;border-radius:8px"><img src="{% static 'img/osea-logo-white-tagline.webp' %}" width="960" height="277" alt="OSEA logo, white version with tagline Play. Learn. Grow."></div>
+    <div style="border:1px solid #ddd7e5;padding:1.5rem;border-radius:8px;text-align:center"><img src="{% static 'img/osea-logo-colour.webp' %}" width="640" height="457" style="max-width:220px" alt="OSEA | AOSES logo, full colour"></div>
   </div>
 </section>
 

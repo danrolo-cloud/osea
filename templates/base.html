@@ -6,6 +6,8 @@
   <title>{% block title %}OSEA{% endblock %} · Ontario School Esports Association</title>
   <link rel="preload" href="{% static 'fonts/roboto-latin-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{% static 'fonts/montserrat-latin-800-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
   <link rel="stylesheet" href="{% static 'css/osea.css' %}">
   <script>document.documentElement.classList.replace("no-js", "js");</script>
   <script src="{% static 'vendor/htmx-2.0.11.min.js' %}" defer></script>
@@ -21,9 +23,8 @@
   {% with url_name=request.resolver_match.url_name %}
   <header class="site-header">
     <div class="container">
-      <a class="brand" href="{% url 'core:home' %}" aria-label="Ontario School Esports Association home">
-        <span class="brand-mark" aria-hidden="true">OSEA</span>
-        <span class="brand-name" aria-hidden="true">Ontario School Esports</span>
+      <a class="brand" href="{% url 'core:home' %}">
+        <img src="{% static 'img/osea-logo-white.webp' %}" width="480" height="113" alt="OSEA home">
       </a>
 
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav">Menu</button>
