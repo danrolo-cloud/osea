@@ -54,7 +54,9 @@ services:
   - name: web
     github: *source
     environment_slug: python
-    instance_size_slug: apps-s-1vcpu-1gb
+    # Smallest size (US$5/month, 512 MB). Measured ~160 MB in use with 2 workers.
+    # If the app's Insights page shows memory near the limit, change to apps-s-1vcpu-1gb.
+    instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1
     http_port: 8000
     run_command: gunicorn config.wsgi --bind 0.0.0.0:8000 --workers 2 --access-logfile -

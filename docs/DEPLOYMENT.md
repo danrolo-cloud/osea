@@ -11,9 +11,14 @@ small changes.
 
 | Account | Why | Approximate cost |
 |---|---|---|
-| DigitalOcean (in OSEA's name, OSEA's billing) | Runs the website and the database | US$5–12/month app + ~US$15/month database |
+| DigitalOcean (in OSEA's name, OSEA's billing) | Runs the website and the database | US$5/month app + ~US$15/month database (about US$245/year) |
 | A sending account in OSEA's Google Workspace (e.g. `platform@` your domain) | Sends sign-up, approval and match emails | free (Workspace for Nonprofits) |
 | Access to OSEA's domain settings (DNS) | Points e.g. `app.osea.ca` at the platform | usually already paid for |
+
+**Lower the cost:** DigitalOcean's *DO for Nonprofits & Social Enterprises* program gives eligible
+nonprofits working on education up to US$2,500 in one-time credits (eligibility is checked by a service
+called Percent; the program is open to nonprofits and social enterprises, not only registered charities). Apply right after creating the account, and
+check how long the credits last before counting on them. Without credits, the costs above apply.
 
 Use an OSEA-owned email address for these accounts (not a personal one), turn on
 two-step sign-in for each, and record who has access in OSEA's records.

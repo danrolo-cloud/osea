@@ -57,6 +57,9 @@ First complete workflow:
     if the losers-bracket team wins the grand final (can be switched off per stage).
 13. **Email is sent through OSEA's Google Workspace** (decided 2026-10-04): a dedicated platform account
     (e.g. `platform@`), free under Workspace for Nonprofits; replies forward to OSEA's main inbox.
+14. **Hosting plan: DigitalOcean, Toronto** (recommended 2026-10-04, awaiting OSEA approval): US$5/month app
+    plus ~US$15/month managed database with daily backups. OSEA is an incorporated nonprofit, not a
+    registered charity, so Microsoft's charity credits don't apply; DigitalOcean's nonprofit credits may.
 4. **Result confirmation.** The opposing coach confirms or disputes within 48 hours. No response sends it to the
    admin queue with one-click finalize (no automatic finalization). Disputes always go to an admin.
    Admins can enter or correct any result, and every change is logged.
