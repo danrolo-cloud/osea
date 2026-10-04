@@ -17,6 +17,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.permissions import coach_required
 from audit.log import changes_between, history_for, record, snapshot
+from matches import standings
 from matches.display import grouped_rounds
 from schools.models import Student
 from schools.permissions import get_school_or_403, schools_for
@@ -61,10 +62,13 @@ def competition_detail(request, pk):
         my_schools = schools_for(request.user)
         my_registrations = competition.registrations.filter(school__in=my_schools).select_related("school")
         eligible_schools = [s for s in my_schools if competition.school_is_eligible(s)]
-    stages = [
-        (stage, grouped_rounds(stage.matches.select_related("home", "away", "home_source", "away_source", "winner")))
-        for stage in competition.stages.filter(is_published=True).select_related("division")
-    ]
+    stages = []
+    for stage in competition.stages.filter(is_published=True).select_related("division"):
+        matches = list(
+            stage.matches.select_related("home__school", "away__school", "home_source", "away_source", "winner")
+        )
+        table = standings.calculate(stage, matches) if stage.has_standings and matches else []
+        stages.append((stage, grouped_rounds(matches), table))
     context = {
         "competition": competition,
         "stages": stages,

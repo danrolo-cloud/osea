@@ -1,0 +1,9 @@
+{% autoescape off %}Hello,
+
+The other team disputed the result you reported for {{ match.home.team_name }} v {{ match.away.team_name }} ({{ match.stage.competition }}):
+{{ submission.dispute_reason }}
+
+OSEA will review it and decide. Match details: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

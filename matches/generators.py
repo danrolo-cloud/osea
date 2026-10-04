@@ -230,3 +230,35 @@ def swiss_first_round(teams):
     for i in range(half):
         plans.insert(i, _plan(f"s1-{i}", 1, 1, "Round 1", home=teams[i], away=teams[half + i]))
     return plans
+
+
+def swiss_pairings(ranked, played, had_bye):
+    """
+    Pair a Swiss round from the current standings (best first).
+
+    Teams play the highest-ranked team they haven't already met. With an odd
+    number, the lowest-ranked team that hasn't had a bye gets one. If a
+    rematch can't be avoided, teams are paired in standings order.
+    Returns (pairs, bye_team).
+    """
+    teams = list(ranked)
+    bye = None
+    if len(teams) % 2:
+        bye = next((t for t in reversed(teams) if t not in had_bye), teams[-1])
+        teams.remove(bye)
+
+    def pair(remaining):
+        if not remaining:
+            return []
+        first = remaining[0]
+        for i in range(1, len(remaining)):
+            if frozenset((first, remaining[i])) not in played:
+                rest = pair(remaining[1:i] + remaining[i + 1 :])
+                if rest is not None:
+                    return [(first, remaining[i]), *rest]
+        return None
+
+    pairs = pair(teams)
+    if pairs is None:
+        pairs = [(teams[i], teams[i + 1]) for i in range(0, len(teams), 2)]
+    return pairs, bye

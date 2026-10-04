@@ -1,6 +1,6 @@
 # OSEA platform: plan and decisions
 
-Last updated: 2026-10-04 (Phase 3 complete)
+Last updated: 2026-10-04 (Phase 4 complete)
 
 ## Goal
 
@@ -49,6 +49,12 @@ First complete workflow:
     agreed time stands until a new one is accepted. Administrators can still set, change or cancel any match.
 11. **Announcements** are posted to a whole competition or one division, shown on those coaches' dashboards, and on
     the public competition page only if marked public. They will be emailed once real email is approved.
+12. **Results and standings** (defaults agreed 2026-10-04, may change later; all are per-stage settings):
+    a result records games won by each side, with optional per-game scores; either coach reports it, the other
+    confirms (final) or disputes; disputes and results unconfirmed after 48 hours go to OSEA. Standings use points
+    for a win/loss and the admin's ordered tiebreakers (head-to-head, game difference, games won, score
+    difference, opponents' points), then OSEA's recorded decision. Double elimination plays a grand-final reset
+    if the losers-bracket team wins the grand final (can be switched off per stage).
 4. **Result confirmation.** The opposing coach confirms or disputes within 48 hours. No response sends it to the
    admin queue with one-click finalize (no automatic finalization). Disputes always go to an admin.
    Admins can enter or correct any result, and every change is logged.
@@ -97,7 +103,7 @@ automatic round-robin generation, result screenshot uploads, notification emails
 | 1. Schools & coaches | School directory, coach sign-up and approval, yearly membership, activity log, CSV export | ✅ Oct 4 |
 | 2. Competitions & registration | Admin-managed games and competitions (own dates and rules), divisions, team registration with rosters, review queue, division assignment | ✅ Oct 4 |
 | 3. Schedules & announcements | Stages with admin-chosen formats, generated matches and brackets, coach-to-coach scheduling, cancellations and byes, public schedules, announcements | ✅ Oct 4 |
-| 4. Results & standings | Submit, confirm or dispute, admin finalize, standings with tiebreakers, public standings | early Dec |
+| 4. Results & standings | Submit, confirm or dispute, admin finalize, forfeits, bracket advancement, Swiss pairing, standings with tiebreakers, public standings | ✅ Oct 4 |
 | 5. Pilot readiness | Hosting set up (with approval), admin two-factor sign-in, backup guide, pilot with a few coaches | before Dec 18 |
 | Launch | Real coaches onboarded; Valorant registration opens | January 2027 |
 
@@ -146,3 +152,20 @@ Targets assume regular review checkpoints with OSEA. The December pilot must fin
 - Stages are hidden from coaches and the public until an admin publishes them.
 - Not yet: forfeits (recorded with results in Phase 4), grand-final bracket reset, automatic Swiss pairing
   after round 1, and match-time reminder emails.
+
+## Phase 4 notes
+
+- Only final results count. A coach's report stays "waiting for confirmation" until the other team confirms or an
+  administrator makes it final.
+- No draws: every match needs a winner. In a best of N, the winner takes exactly N÷2+1 games (e.g. 2–0 or 2–1).
+- A forfeit is recorded by an administrator and scores as N÷2+1 games to 0 for the other team.
+- Brackets: winners and losers move on as soon as a result is final. A result that a later match depends on
+  can't be changed until that later result is reopened; reopening clears the team that moved on.
+- Swiss: the next round is paired from the standings once the current round is finished, avoiding rematches;
+  the bye goes to the lowest-ranked team that hasn't had one. Byes count as wins only if the stage says so.
+- Standings are never typed in; they are recalculated from final results every time. Teams still level after
+  every tiebreaker are marked and wait for OSEA's recorded decision.
+
+The first complete workflow now works end to end: an administrator creates a competition, a coach registers a
+team and roster, the administrator approves it and places it in a division, publishes the matches, coaches agree
+times and report results, results are confirmed or reviewed, and standings update.

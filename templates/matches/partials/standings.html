@@ -1,0 +1,44 @@
+{% load i18n %}{% comment %}
+  Standings table. Needs `table` (rows from matches.standings.calculate) and `stage`.
+  With `decide_url`, administrators can record a decision for teams no tiebreaker separates.
+{% endcomment %}
+{% if table %}
+<div class="table-wrap">
+  <table>
+    <caption>{% blocktranslate with w=stage.points_win l=stage.points_loss %}Standings · win {{ w }} pt, loss {{ l }}{% endblocktranslate %}</caption>
+    <thead>
+      <tr>
+        <th scope="col" class="num">#</th>
+        <th scope="col">{% translate "Team" %}</th>
+        <th scope="col" class="num">{% translate "P" %}<span class="visually-hidden"> {% translate "played" %}</span></th>
+        <th scope="col" class="num">{% translate "W" %}<span class="visually-hidden"> {% translate "wins" %}</span></th>
+        <th scope="col" class="num">{% translate "L" %}<span class="visually-hidden"> {% translate "losses" %}</span></th>
+        <th scope="col" class="num hide-sm">{% translate "Games" %}</th>
+        <th scope="col" class="num hide-sm">{% translate "+/−" %}</th>
+        {% if 'score_diff' in stage.tiebreakers %}<th scope="col" class="num hide-sm">{% translate "Score +/−" %}</th>{% endif %}
+        <th scope="col" class="num">{% translate "Pts" %}</th>
+        {% if decide_url %}<th scope="col">{% translate "OSEA decision" %}</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in table %}
+      <tr>
+        <td class="num">{{ row.position }}{% if row.tied %}<span class="tied-flag" title="{% translate 'Tied: needs an OSEA decision' %}">*</span>{% endif %}</td>
+        <th scope="row">{{ row.team.team_name }}<br><span class="muted small">{{ row.team.school.name }}</span></th>
+        <td class="num">{{ row.played }}</td>
+        <td class="num">{{ row.wins }}</td>
+        <td class="num">{{ row.losses }}</td>
+        <td class="num hide-sm">{{ row.games_won }}–{{ row.games_lost }}</td>
+        <td class="num hide-sm">{{ row.game_diff|stringformat:"+d" }}</td>
+        {% if 'score_diff' in stage.tiebreakers %}<td class="num hide-sm">{{ row.score_diff|stringformat:"+d" }}</td>{% endif %}
+        <td class="num"><strong>{{ row.points }}</strong></td>
+        {% if decide_url %}<td>{% for entry_pk, entry in entries.items %}{% if entry_pk == row.team.pk %}{% if row.tied or entry.tiebreak_rank %}<label class="visually-hidden" for="rank-{{ entry.pk }}">{% blocktranslate with t=row.team.team_name %}Decision for {{ t }}{% endblocktranslate %}</label><input class="input-narrow" id="rank-{{ entry.pk }}" type="number" min="1" name="rank-{{ entry.pk }}" value="{{ entry.tiebreak_rank|default:'' }}" form="tiebreak-form">{% else %}<span class="muted">—</span>{% endif %}{% endif %}{% endfor %}</td>{% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if table|length > 1 %}
+<p class="help-text">{% translate "Order: points" %}{% for t in stage.tiebreakers %}, {% if t == 'head_to_head' %}{% translate "head-to-head" %}{% elif t == 'game_diff' %}{% translate "game difference" %}{% elif t == 'games_won' %}{% translate "games won" %}{% elif t == 'score_diff' %}{% translate "score difference" %}{% elif t == 'buchholz' %}{% translate "opponents' points" %}{% endif %}{% endfor %}{% translate ", then OSEA's decision." %} {% translate "Only final results count." %}</p>
+{% endif %}
+{% endif %}

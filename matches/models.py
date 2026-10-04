@@ -11,11 +11,24 @@ the other accepts. Administrators can set or change a time at any point.
 """
 
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from competitions.models import Competition, Division, Registration
+
+
+class Tiebreaker(models.TextChoices):
+    HEAD_TO_HEAD = "head_to_head", _("Head-to-head (results between the tied teams)")
+    GAME_DIFF = "game_diff", _("Game difference (games won minus games lost)")
+    GAMES_WON = "games_won", _("Games won")
+    SCORE_DIFF = "score_diff", _("Score difference (e.g. rounds or goals, from per-game scores)")
+    BUCHHOLZ = "buchholz", _("Opponents' points (Buchholz, for Swiss)")
+
+
+def default_tiebreakers():
+    return [Tiebreaker.HEAD_TO_HEAD, Tiebreaker.GAME_DIFF, Tiebreaker.SCORE_DIFF]
 
 
 class Stage(models.Model):
@@ -51,6 +64,25 @@ class Stage(models.Model):
         default=False,
         help_text=_("Coaches and the public see this stage's matches only once it's published."),
     )
+
+    # Standings (round robin, Swiss and custom stages)
+    points_win = models.PositiveSmallIntegerField(_("points for a win"), default=1)
+    points_loss = models.PositiveSmallIntegerField(_("points for a loss"), default=0)
+    tiebreakers = ArrayField(
+        models.CharField(max_length=20, choices=Tiebreaker.choices),
+        verbose_name=_("tiebreakers, in order"),
+        default=default_tiebreakers,
+        blank=True,
+        help_text=_("Used in this order when teams have the same points. A recorded OSEA decision always comes last."),
+    )
+    bye_counts_as_win = models.BooleanField(
+        _("a bye counts as a win"), default=False, help_text=_("Usual in Swiss; not usual in round robin.")
+    )
+    grand_final_reset = models.BooleanField(
+        _("grand final reset"),
+        default=True,
+        help_text=_("Double elimination: if the losers-bracket team wins the grand final, a second final is played."),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -65,6 +97,16 @@ class Stage(models.Model):
             raise ValidationError({"swiss_rounds": _("Enter how many Swiss rounds will be played.")})
         if self.division_id and self.competition_id and self.division.competition_id != self.competition_id:
             raise ValidationError({"division": _("That division belongs to another competition.")})
+
+    @property
+    def has_standings(self):
+        return not self.is_bracket
+
+    @property
+    def games_to_win(self):
+        """Games needed to win a match: 2 in a best of 3. 1 if no best-of is set."""
+        best_of = self.effective_best_of
+        return best_of // 2 + 1 if best_of else 1
 
     @property
     def is_bracket(self):
@@ -88,6 +130,11 @@ class StageTeam(models.Model):
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE, related_name="entries")
     registration = models.ForeignKey(Registration, on_delete=models.PROTECT, related_name="stage_entries")
     seed = models.PositiveSmallIntegerField()
+    tiebreak_rank = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text=_("OSEA's recorded decision for a tie that no tiebreaker separates (1 = higher)."),
+    )
 
     class Meta:
         ordering = ["stage", "seed"]
@@ -105,6 +152,8 @@ class Match(models.Model):
         OPEN = "open", _("Open")
         BYE = "bye", _("Bye")
         CANCELLED = "cancelled", _("Cancelled")
+        COMPLETED = "completed", _("Completed")
+        FORFEIT = "forfeit", _("Forfeit")
 
     class Bracket(models.TextChoices):
         NONE = "", _("—")
@@ -124,6 +173,9 @@ class Match(models.Model):
         SCHEDULED = "scheduled", _("Scheduled")
         BYE = "bye", _("Bye")
         CANCELLED = "cancelled", _("Cancelled")
+        RESULT_PENDING = "result_pending", _("Result waiting for confirmation")
+        DISPUTED = "disputed", _("Result disputed")
+        FINAL = "final", _("Final")
 
     stage = models.ForeignKey(Stage, on_delete=models.CASCADE, related_name="matches")
     number = models.PositiveIntegerField(_("match number"), help_text=_("Unique within the stage."))
@@ -148,6 +200,16 @@ class Match(models.Model):
 
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.OPEN)
     winner = models.ForeignKey(Registration, null=True, blank=True, on_delete=models.PROTECT, related_name="+")
+    home_games = models.PositiveSmallIntegerField(null=True, blank=True)
+    away_games = models.PositiveSmallIntegerField(null=True, blank=True)
+    game_scores = models.JSONField(
+        default=list, blank=True, help_text=_("Optional per-game scores, e.g. [[13, 11], [9, 13], [13, 7]].")
+    )
+    finalized_at = models.DateTimeField(null=True, blank=True)
+    finalized_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="+"
+    )
+    is_reset = models.BooleanField(default=False, help_text=_("A grand-final reset match."))
     cancel_reason = models.CharField(_("reason"), max_length=300, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -165,12 +227,23 @@ class Match(models.Model):
 
     @property
     def state(self):
+        if self.status in (self.Status.COMPLETED, self.Status.FORFEIT):
+            return self.State.FINAL
         if self.status == self.Status.CANCELLED:
             return self.State.CANCELLED
         if self.status == self.Status.BYE:
             return self.State.BYE
         if self.home_id is None or self.away_id is None:
             return self.State.WAITING
+        pending = getattr(self, "_pending_result", None)
+        if pending is None:
+            pending = (
+                self.submissions.filter(status__in=["pending", "disputed"]).values_list("status", flat=True).first()
+            )
+        if pending == "disputed":
+            return self.State.DISPUTED
+        if pending == "pending":
+            return self.State.RESULT_PENDING
         if self.scheduled_at:
             return self.State.SCHEDULED
         return self.State.TO_SCHEDULE
@@ -184,12 +257,25 @@ class Match(models.Model):
 
     @property
     def is_settled(self):
-        """Decided, so its winner and loser are known (only byes until results arrive in Phase 4)."""
-        return self.status == self.Status.BYE
+        """Decided, so its winner and loser are known."""
+        return self.status in (self.Status.BYE, self.Status.COMPLETED, self.Status.FORFEIT)
+
+    @property
+    def has_result(self):
+        return self.status in (self.Status.COMPLETED, self.Status.FORFEIT)
 
     @property
     def loser(self):
-        return None  # a bye has no loser; results add real losers in Phase 4
+        if not self.has_result or self.winner is None:
+            return None  # a bye has no loser
+        return self.away if self.winner_id == self.home_id else self.home
+
+    @property
+    def score_label(self):
+        if not self.has_result:
+            return ""
+        label = f"{self.home_games}–{self.away_games}"
+        return label + (" " + str(_("(forfeit)")) if self.status == self.Status.FORFEIT else "")
 
     def teams(self):
         return [t for t in (self.home, self.away) if t is not None]
@@ -245,3 +331,44 @@ class TimeProposal(models.Model):
 
     def __str__(self):
         return f"{self.match}: {self.proposed_time}"
+
+
+class ResultSubmission(models.Model):
+    """
+    A coach reports a match result. The other team's coaches confirm it (it
+    becomes final) or dispute it (OSEA decides). Unanswered after 48 hours,
+    it goes to OSEA's queue.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Waiting for the other team to confirm")
+        CONFIRMED = "confirmed", _("Confirmed")
+        DISPUTED = "disputed", _("Disputed")
+        REPLACED = "replaced", _("Replaced")
+        ACCEPTED_BY_OSEA = "osea", _("Finalized by OSEA")
+        REJECTED_BY_OSEA = "rejected", _("Set aside by OSEA")
+
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="submissions")
+    submitting_team = models.ForeignKey(Registration, on_delete=models.PROTECT, related_name="+")
+    submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    home_games = models.PositiveSmallIntegerField()
+    away_games = models.PositiveSmallIntegerField()
+    game_scores = models.JSONField(default=list, blank=True)
+    note = models.CharField(_("note"), max_length=300, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+    responded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="+"
+    )
+    dispute_reason = models.CharField(_("what's wrong"), max_length=500, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.match}: {self.home_games}–{self.away_games}"
+
+    @property
+    def winner(self):
+        return self.match.home if self.home_games > self.away_games else self.match.away

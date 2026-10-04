@@ -136,12 +136,20 @@
     {% endif %}
   </section>
 
-  <section class="card" aria-labelledby="h-later">
-    <div class="card-header"><h2 id="h-later">{% translate "Coming in later phases" %}</h2></div>
-    <ul class="task-list">
-      <li><span>{% translate "Bracket advancement and Swiss pairings after round 1" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
-      <li><span>{% translate "Disputed and unconfirmed results" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
-    </ul>
+  <section class="card" aria-labelledby="h-results">
+    <div class="card-header"><h2 id="h-results">{% translate "Results needing a decision" %}</h2><a href="{% url 'matches:results_queue' %}">{% translate "All results" %}</a></div>
+    {% if results_attention %}
+      <ul class="task-list">
+        {% for r in results_attention %}
+          <li>
+            <div><strong>{{ r.match.home.team_name }} v {{ r.match.away.team_name }}</strong><br><span class="muted small">{% if r.status == 'disputed' %}{% translate "Disputed" %}{% else %}{% translate "Not confirmed after 48 hours" %}{% endif %} · {{ r.match.stage.competition.name }}</span></div>
+            <a class="btn btn-secondary" href="{% url 'matches:results_queue' %}">{% translate "Decide" %}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">{% translate "No disputed or overdue results." %}</p>
+    {% endif %}
   </section>
 </div>
 {% endblock %}

@@ -58,6 +58,7 @@
       <div class="container">
         <ul>
           <li><a href="{% url 'competitions:manage_list' %}" {% if nav_section == 'manage_competitions' %}aria-current="page"{% endif %}>{% translate "Competitions" %}</a></li>
+          <li><a href="{% url 'matches:results_queue' %}" {% if nav_section == 'results' %}aria-current="page"{% endif %}>{% translate "Results" %}</a></li>
           <li><a href="{% url 'schools:access_requests' %}" {% if nav_section == 'access' %}aria-current="page"{% endif %}>{% translate "Coach requests" %}</a></li>
           <li><a href="{% url 'schools:school_list' %}" {% if nav_section == 'schools' %}aria-current="page"{% endif %}>{% translate "Schools" %}</a></li>
           <li><a href="{% url 'schools:coach_list' %}" {% if nav_section == 'coaches' %}aria-current="page"{% endif %}>{% translate "Coaches" %}</a></li>

@@ -21,7 +21,7 @@
       <dd>{{ competition.registration_opens_at|date:"M j, g:i a" }} – {{ competition.registration_closes_at|date:"M j, Y, g:i a" }}<br><span class="muted small">{% translate "Toronto time" %}</span></dd>
       <dt>{% translate "Who can enter" %}</dt><dd>{{ competition.allowed_levels_display }} {% translate "schools" %} · {{ competition.grade_range_label }}</dd>
       <dt>{% translate "Teams" %}</dt><dd>{% blocktranslate with p=competition.players_per_team a=competition.roster_min b=competition.roster_max %}{{ p }} play at once; rosters of {{ a }}–{{ b }} players{% endblocktranslate %}</dd>
-      {% if stages %}<dt>{% translate "Format" %}</dt><dd>{% for stage, rounds in stages %}{{ stage.name }}: {{ stage.get_format_display }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</dd>{% endif %}
+      {% if stages %}<dt>{% translate "Format" %}</dt><dd>{% for stage, rounds, table in stages %}{{ stage.name }}: {{ stage.get_format_display }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</dd>{% endif %}
       {% if competition.best_of %}<dt>{% translate "Matches" %}</dt><dd>{% blocktranslate with n=competition.best_of %}Best of {{ n }}{% endblocktranslate %}</dd>{% endif %}
       {% if competition.rules_url %}<dt>{% translate "Rules" %}</dt><dd><a href="{{ competition.rules_url }}" rel="noopener">{% translate "Read the rulebook" %}</a></dd>{% endif %}
     </dl>
@@ -59,9 +59,10 @@
 </section>
 {% endif %}
 
-{% for stage, rounds in stages %}
+{% for stage, rounds, table in stages %}
 <section class="mt" aria-labelledby="h-stage-{{ stage.pk }}">
   <h2 id="h-stage-{{ stage.pk }}">{{ stage.name }} <span class="muted small">{{ stage.get_format_display }}{% if stage.division %} · {{ stage.division }}{% endif %}</span></h2>
+  {% if table %}<div class="mb">{% include "matches/partials/standings.html" %}</div>{% endif %}
   <p class="help-text">{% translate "Times are Toronto time." %}</p>
   {% include "matches/partials/schedule.html" with link_kind="none" %}
 </section>

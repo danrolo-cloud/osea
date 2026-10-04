@@ -155,24 +155,32 @@ def _slot(match, side):
 
 def resolve_stage(stage):
     """
-    Fill in bracket slots from matches that are decided, and turn matches with
-    only one team into byes (that team goes through). Matches are processed in
+    Bring every linked slot up to date with the matches that feed it, and turn
+    matches with only one team into byes (that team goes through). Runs after
+    any result is entered, corrected or reopened. Matches are processed in
     number order, which always comes after the matches that feed them.
     """
     for match in stage.matches.order_by("number"):
-        if match.status == Match.Status.CANCELLED:
+        if match.status == Match.Status.CANCELLED or match.has_result:
             continue
-        home_known, home = _slot(match, "home")
-        away_known, away = _slot(match, "away")
         changed = False
-        if match.home_source_id and home_known and match.home != home:
-            match.home, changed = home, True
-        if match.away_source_id and away_known and match.away != away:
-            match.away, changed = away, True
-        if home_known and away_known and (home is None or away is None):
-            winner = home or away  # None when both slots are empty: nobody advances
+        known = {}
+        for side in ("home", "away"):
+            is_known, team = _slot(match, side)
+            known[side] = is_known
+            if getattr(match, f"{side}_source_id"):
+                new = team if is_known else None
+                if getattr(match, side) != new:
+                    setattr(match, side, new)
+                    changed = True
+        linked = match.home_source_id or match.away_source_id
+        one_sided = (match.home is None) != (match.away is None)
+        if known["home"] and known["away"] and (one_sided or (linked and match.home is None and match.away is None)):
+            winner = match.home or match.away  # None when both slots are empty: nobody advances
             if match.status != Match.Status.BYE or match.winner != winner:
                 match.status, match.winner, changed = Match.Status.BYE, winner, True
+        elif match.status == Match.Status.BYE:
+            match.status, match.winner, changed = Match.Status.OPEN, None, True
         if changed:
             match.save()
 

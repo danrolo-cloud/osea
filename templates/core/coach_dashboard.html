@@ -12,7 +12,7 @@
   <a class="btn btn-secondary" href="{% url 'schools:request_school' %}">{% translate "Request another school" %}</a>
 </div>
 
-{% if needs_verification or pending or closed or registrations_to_finish or awaiting or to_schedule %}
+{% if needs_verification or pending or closed or registrations_to_finish or awaiting or to_schedule or results_to_confirm or results_to_report %}
 <section class="card mb" aria-labelledby="h-attention">
   <h2 id="h-attention">{% translate "Needs your attention" %}</h2>
   <ul class="task-list">
@@ -22,6 +22,20 @@
         <form method="post" action="{% url 'accounts:resend_verification' %}">{% csrf_token %}<button class="btn btn-secondary" type="submit">{% translate "Resend link" %}</button></form>
       </li>
     {% endif %}
+    {% for r in results_to_confirm %}
+      <li>
+        <div><strong>{% blocktranslate with home=r.match.home.team_name h=r.home_games a=r.away_games away=r.match.away.team_name %}Confirm result: {{ home }} {{ h }}–{{ a }} {{ away }}{% endblocktranslate %}</strong><br>
+          <span class="muted small">{% blocktranslate with team=r.submitting_team.team_name %}Reported by {{ team }}{% endblocktranslate %}</span></div>
+        <a class="btn btn-primary" href="{% url 'matches:coach_match' r.match.pk %}">{% translate "Review" %}</a>
+      </li>
+    {% endfor %}
+    {% for m in results_to_report %}
+      <li>
+        <div><strong>{% blocktranslate with home=m.home.team_name away=m.away.team_name %}Report result: {{ home }} v {{ away }}{% endblocktranslate %}</strong><br>
+          <span class="muted small">{% blocktranslate with when=m.scheduled_at|date:"D M j, g:i a" %}Played {{ when }}{% endblocktranslate %}</span></div>
+        <a class="btn btn-primary" href="{% url 'matches:coach_match' m.pk %}">{% translate "Report" %}</a>
+      </li>
+    {% endfor %}
     {% for p in awaiting %}
       <li>
         <div><strong>{{ p.match.home.team_name }} v {{ p.match.away.team_name }}</strong><br>
@@ -157,10 +171,5 @@
   {% endif %}
 </section>
 
-<section class="card mt" aria-labelledby="h-later">
-  <h2 id="h-later">{% translate "Coming in later phases" %}</h2>
-  <ul class="task-list">
-    <li><span>{% translate "Submit and confirm results" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
-  </ul>
-</section>
+
 {% endblock %}

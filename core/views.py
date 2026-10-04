@@ -16,7 +16,8 @@ from competitions.models import Competition, Registration, RosterChange
 from competitions.views import announcements_for
 from matches.manage_views import overdue
 from matches.models import Match
-from matches.views import awaiting_my_answer, coach_matches
+from matches.results import needs_admin
+from matches.views import awaiting_my_answer, coach_matches, results_to_report, results_waiting_for_me
 from schools.manage_views import schools_needing_membership_attention
 from schools.models import CoachAccess, Membership, SchoolYear
 
@@ -61,6 +62,7 @@ def admin_dashboard(request):
             "registration__competition", "registration__school"
         )[:6],
         "deadlines": upcoming_deadlines(),
+        "results_attention": needs_admin()[:8],
         "overdue_matches": overdue(
             Match.objects.filter(stage__is_published=True, status=Match.Status.OPEN, scheduled_at__isnull=True)
             .exclude(home__isnull=True)
@@ -124,6 +126,8 @@ def coach_dashboard(request):
     now = timezone.now()
     context = {
         "awaiting": awaiting_my_answer(request.user),
+        "results_to_confirm": results_waiting_for_me(request.user),
+        "results_to_report": results_to_report(request.user),
         "to_schedule": [m for m in matches if m.state == Match.State.TO_SCHEDULE],
         "next_matches": [m for m in matches if m.state == Match.State.SCHEDULED and m.scheduled_at >= now][:4],
         "announcements": announcements_for(request.user)[:5],

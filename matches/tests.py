@@ -422,7 +422,15 @@ class AdminScreenTests(StageTestData):
         self.client.force_login(self.admin)
         self.client.post(
             reverse("matches:stage_create", args=[self.comp.pk]),
-            {"name": "Playoffs", "format": "double_elim", "order": 1, "is_published": "on"},
+            {
+                "name": "Playoffs",
+                "format": "double_elim",
+                "order": 1,
+                "is_published": "on",
+                "points_win": 1,
+                "points_loss": 0,
+                "grand_final_reset": "on",
+            },
         )
         stage = Stage.objects.get(name="Playoffs")
         data = {"first_day": "2026-11-02", "days_per_round": 7}
@@ -439,6 +447,7 @@ class AdminScreenTests(StageTestData):
     def test_swiss_stage_needs_a_number_of_rounds(self):
         self.client.force_login(self.admin)
         response = self.client.post(
-            reverse("matches:stage_create", args=[self.comp.pk]), {"name": "Swiss", "format": "swiss", "order": 1}
+            reverse("matches:stage_create", args=[self.comp.pk]),
+            {"name": "Swiss", "format": "swiss", "order": 1, "points_win": 1, "points_loss": 0},
         )
         self.assertContains(response, "how many Swiss rounds")

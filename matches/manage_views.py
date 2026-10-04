@@ -12,12 +12,15 @@ from accounts.permissions import admin_required
 from audit.log import changes_between, record, snapshot
 from competitions.models import Competition
 
-from . import services
+from . import results, services, standings
 from .display import grouped_rounds
-from .forms import GenerateForm, MatchForm, ReasonForm, StageForm
-from .models import Match, Stage
+from .forms import GenerateForm, MatchForm, ReasonForm, ResultForm, StageForm
+from .models import Match, ResultSubmission, Stage
 
-STAGE_FIELDS = ["name", "format", "division", "order", "best_of", "swiss_rounds", "is_published"]
+STAGE_FIELDS = [
+    "name", "format", "division", "order", "best_of", "swiss_rounds", "is_published",
+    "points_win", "points_loss", "tiebreakers", "bye_counts_as_win", "grand_final_reset",
+]  # fmt: skip
 MATCH_FIELDS = ["home", "away", "round_number", "round_label", "play_from", "play_by"]
 
 
@@ -59,6 +62,8 @@ def stage_detail(request, pk):
     seeded = {entry.registration_id: entry.seed for entry in stage.entries.all()}
     teams = list(stage.eligible_teams())
     teams.sort(key=lambda t: (seeded.get(t.pk, 999), t.team_name))
+    table = standings.calculate(stage, matches) if stage.has_standings and matches else []
+    entries = {e.registration_id: e for e in stage.entries.all()}
     context = {
         "stage": stage,
         "competition": stage.competition,
@@ -67,8 +72,21 @@ def stage_detail(request, pk):
         "teams": teams,
         "generate_form": GenerateForm(),
         "overdue": overdue(matches),
+        "table": table,
+        "entries": entries,
+        "any_tied": any(row.tied or (row.team.pk in entries and entries[row.team.pk].tiebreak_rank) for row in table),
+        "can_pair_swiss": _swiss_round_complete(stage, matches),
     }
     return render(request, "matches/manage/stage_detail.html", context)
+
+
+def _swiss_round_complete(stage, matches):
+    """True when the latest Swiss round is finished and more rounds remain."""
+    if stage.format != Stage.Format.SWISS or not matches:
+        return False
+    current = max(m.round_number for m in matches)
+    finished = all(m.is_settled or m.status == Match.Status.CANCELLED for m in matches if m.round_number == current)
+    return finished and current < (stage.swiss_rounds or 0)
 
 
 def overdue(matches):
@@ -185,7 +203,105 @@ def match_form(request, stage_pk, pk=None):
         else:
             messages.success(request, _("Match saved."))
             return redirect("matches:stage", pk=stage.pk)
-    return render(request, "matches/manage/match_form.html", {"form": form, "stage": stage, "match": match})
+    context = {"form": form, "stage": stage, "match": match}
+    if match is not None:
+        context["result_form"] = ResultForm(
+            match=match,
+            initial={"home_games": match.home_games, "away_games": match.away_games,
+                     "game_scores": ", ".join(f"{h}-{a}" for h, a in match.game_scores or [])},
+        )  # fmt: skip
+        context["submissions"] = match.submissions.select_related("submitting_team", "submitted_by")[:10]
+        context["open_submission"] = match.submissions.filter(status__in=results.OPEN_SUBMISSION).first()
+    return render(request, "matches/manage/match_form.html", context)
+
+
+# ---------- Results ----------
+
+
+@admin_required
+def results_queue(request):
+    context = {
+        "needs_admin": results.needs_admin(),
+        "recent": Match.objects.filter(status__in=[Match.Status.COMPLETED, Match.Status.FORFEIT])
+        .select_related("stage__competition", "home", "away", "finalized_by")
+        .order_by("-finalized_at")[:20],
+    }
+    return render(request, "matches/manage/results_queue.html", context)
+
+
+@admin_required
+@require_POST
+def admin_result(request, pk):
+    match = get_object_or_404(Match.objects.select_related("stage"), pk=pk)
+    action = request.POST.get("action")
+    try:
+        if action == "accept":
+            submission = get_object_or_404(ResultSubmission, pk=request.POST.get("submission"), match=match)
+            results.admin_accept_submission(request, submission, request.user)
+            messages.success(request, _("Result is final."))
+        elif action == "set":
+            form = ResultForm(request.POST, match=match)
+            if not form.is_valid():
+                raise ValidationError(_("Enter the number of games each team won."))
+            results.admin_set_result(
+                request, match, request.user, form.cleaned_data["home_games"], form.cleaned_data["away_games"],
+                results.parse_game_scores(form.cleaned_data["game_scores"]), form.cleaned_data["note"],
+            )  # fmt: skip
+            messages.success(request, _("Result saved and final."))
+        elif action == "forfeit":
+            side = request.POST.get("forfeiting")
+            team = match.home if side == "home" else match.away if side == "away" else None
+            results.admin_forfeit(request, match, request.user, team, request.POST.get("reason", ""))
+            messages.success(request, _("Forfeit recorded."))
+        elif action == "reopen":
+            results.reopen_result(request, match, request.user, request.POST.get("reason", ""))
+            messages.success(request, _("Result reopened."))
+    except ValidationError as error:
+        for text in error.messages:
+            messages.error(request, text)
+    if request.POST.get("return_to") == "queue":
+        return redirect("matches:results_queue")
+    return redirect("matches:match_edit", stage_pk=match.stage_id, pk=match.pk)
+
+
+@admin_required
+@require_POST
+def swiss_next_round(request, pk):
+    stage = get_object_or_404(Stage, pk=pk)
+    try:
+        number = results.pair_next_swiss_round(stage, request.user)
+        messages.success(request, _("Round %(n)s paired. Check it, then let coaches know.") % {"n": number})
+    except ValidationError as error:
+        for text in error.messages:
+            messages.error(request, text)
+    return redirect("matches:stage", pk=pk)
+
+
+@admin_required
+@require_POST
+def tiebreak(request, pk):
+    """Record OSEA's decision for teams that no tiebreaker separates."""
+    stage = get_object_or_404(Stage, pk=pk)
+    changed = []
+    for entry in stage.entries.select_related("registration"):
+        raw = request.POST.get(f"rank-{entry.pk}")
+        if raw is None:
+            continue
+        value = int(raw) if raw.strip().isdigit() else None
+        if value != entry.tiebreak_rank:
+            changed.append(f"{entry.registration.team_name}: {value or 'none'}")
+            entry.tiebreak_rank = value
+            entry.save(update_fields=["tiebreak_rank"])
+    if changed:
+        record(
+            request.user,
+            "stage.tiebreak_decided",
+            f"Recorded tiebreak decision in {stage}",
+            target=stage.competition,
+            changes={"decision": ["", "; ".join(changed)]},
+        )
+    messages.success(request, _("Decision saved."))
+    return redirect("matches:stage", pk=pk)
 
 
 @admin_required

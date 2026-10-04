@@ -1,0 +1,10 @@
+{% autoescape off %}Hello,
+
+The result of your match in {{ match.stage.competition }} is final:
+
+{{ match.home.team_name }} {{ match.score_label }} {{ match.away.team_name }}
+
+Match details: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

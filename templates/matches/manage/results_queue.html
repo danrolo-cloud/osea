@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Results" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Results" %}</h1>
+    <p class="lede">{% translate "Disputed results, and results the other team hasn't confirmed within 48 hours." %}</p>
+  </div>
+</div>
+
+{% if needs_admin %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th scope="col">{% translate "Match" %}</th><th scope="col">{% translate "Reported" %}</th><th scope="col">{% translate "Why it's here" %}</th><th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th></tr></thead>
+    <tbody>
+      {% for s in needs_admin %}
+      <tr>
+        <th scope="row">{{ s.match.home.team_name }} v {{ s.match.away.team_name }}<br><span class="muted small">{{ s.match.stage.competition.name }} · {{ s.match.stage.name }}</span></th>
+        <td>{{ s.home_games }}–{{ s.away_games }}<br><span class="muted small">{% blocktranslate with team=s.submitting_team.team_name when=s.created_at|date:"M j, g:i a" %}by {{ team }}, {{ when }}{% endblocktranslate %}</span></td>
+        <td>{% if s.status == 'disputed' %}<span class="badge badge-danger">{% translate "Disputed" %}</span><br><span class="small">{{ s.dispute_reason }}</span>{% else %}<span class="badge badge-warning">{% translate "Not confirmed after 48 hours" %}</span>{% endif %}</td>
+        <td class="table-actions">
+          <form method="post" action="{% url 'matches:admin_result' s.match.pk %}" class="mb">{% csrf_token %}<input type="hidden" name="action" value="accept"><input type="hidden" name="submission" value="{{ s.pk }}"><input type="hidden" name="return_to" value="queue"><button class="btn btn-primary" type="submit">{% translate "Make final" %}</button></form>
+          <a href="{% url 'matches:match_edit' s.match.stage_id s.match.pk %}">{% translate "Correct or forfeit" %}</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty-state"><h2>{% translate "Nothing needs a decision" %}</h2><p>{% translate "Coaches are confirming each other's results." %}</p></div>
+{% endif %}
+
+<section class="mt" aria-labelledby="h-recent">
+  <h2 id="h-recent">{% translate "Recently final" %}</h2>
+  {% if recent %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th scope="col">{% translate "Match" %}</th><th scope="col">{% translate "Result" %}</th><th scope="col" class="hide-sm">{% translate "Made final by" %}</th><th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th></tr></thead>
+      <tbody>
+        {% for m in recent %}
+        <tr>
+          <th scope="row">{{ m.home.team_name }} v {{ m.away.team_name }}<br><span class="muted small">{{ m.stage.competition.name }}</span></th>
+          <td>{{ m.score_label }}</td>
+          <td class="hide-sm">{{ m.finalized_by.get_full_name }}<br><span class="muted small">{{ m.finalized_at|date:"M j, g:i a" }}</span></td>
+          <td class="table-actions"><a href="{% url 'matches:match_edit' m.stage_id m.pk %}">{% translate "Open" %}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<p class="muted">{% translate "No final results yet." %}</p>{% endif %}
+</section>
+{% endblock %}

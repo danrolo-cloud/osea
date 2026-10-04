@@ -5,7 +5,7 @@ management, competition registration, schedules, results and standings.
 
 See [docs/PLAN.md](docs/PLAN.md) for the agreed scope, decisions and phases.
 
-## Current status: Phase 3 (schedules and announcements)
+## Current status: Phase 4 (results and standings): the full competition workflow works
 
 What works, with real data in the database:
 - **Coach sign-up:** account plus school request in one form, email confirmation link, "request another school".
@@ -40,7 +40,17 @@ Phase 3 adds:
 - **My matches** for coaches, schedules and brackets on public competition pages (published stages only).
 - **Announcements** for a competition or division, optionally public.
 
-Not built yet: results and standings (Phase 4). Those dashboard panels are
+Phase 4 adds:
+- **Results:** a coach reports games won (optionally each game's score); the other team confirms or disputes.
+  Disputes and results unconfirmed after 48 hours go to the admin **Results** queue (one click to make final).
+  Admins can enter, correct, reopen or record a forfeit for any match.
+- **Brackets advance automatically**, including the double-elimination grand-final reset; **Swiss rounds** are
+  paired from the standings, avoiding rematches.
+- **Standings** per stage from final results only, with admin-chosen points and tiebreaker order and a recorded
+  OSEA decision for complete ties; shown publicly for published stages.
+
+Not built yet (Phase 5, pilot readiness): hosting, real email sending, admin two-factor sign-in,
+sign-in attempt limits and the backup guide. Those dashboard panels are
 labelled "coming in later phases". Emails print to the terminal in development; nothing is sent.
 
 ## Running it on your computer

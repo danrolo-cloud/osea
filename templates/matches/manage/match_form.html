@@ -26,6 +26,56 @@
 
   {% if match %}
   <div class="card">
+    <h2>{% translate "Result" %}</h2>
+    {% if match.has_result %}
+      <p><strong>{{ match.home_label }} {{ match.score_label }} {{ match.away_label }}</strong>{% if match.game_scores %}<br><span class="muted small">{% for g in match.game_scores %}{{ g.0 }}-{{ g.1 }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>{% endif %}<br>
+      <span class="muted small">{% blocktranslate with who=match.finalized_by.get_full_name when=match.finalized_at|date:"M j, g:i a" %}Final · {{ who }} · {{ when }}{% endblocktranslate %}</span></p>
+    {% elif open_submission %}
+      <div class="alert {% if open_submission.status == 'disputed' %}alert-error{% else %}alert-info{% endif %}">
+        <p>{% blocktranslate with team=open_submission.submitting_team.team_name h=open_submission.home_games a=open_submission.away_games %}{{ team }} reported {{ h }}–{{ a }}{% endblocktranslate %}{% if open_submission.status == 'disputed' %}<br><strong>{% translate "Disputed:" %}</strong> {{ open_submission.dispute_reason }}{% endif %}</p>
+        <form method="post" action="{% url 'matches:admin_result' match.pk %}">{% csrf_token %}<input type="hidden" name="action" value="accept"><input type="hidden" name="submission" value="{{ open_submission.pk }}"><button class="btn btn-primary" type="submit">{% translate "Make this result final" %}</button></form>
+      </div>
+    {% endif %}
+    {% if match.home and match.away and match.status != 'cancelled' and match.status != 'bye' %}
+      <details {% if not match.has_result and not open_submission %}open{% endif %}>
+        <summary>{% if match.has_result %}{% translate "Correct the result" %}{% else %}{% translate "Enter the result" %}{% endif %}</summary>
+        <form method="post" action="{% url 'matches:admin_result' match.pk %}" novalidate class="mt">
+          {% csrf_token %}<input type="hidden" name="action" value="set">
+          <div class="grid grid-2">
+            {% include "partials/field.html" with field=result_form.home_games %}
+            {% include "partials/field.html" with field=result_form.away_games %}
+          </div>
+          {% include "partials/field.html" with field=result_form.game_scores %}
+          {% include "partials/field.html" with field=result_form.note %}
+          <button class="btn btn-primary" type="submit">{% translate "Save final result" %}</button>
+        </form>
+      </details>
+      <details class="mt">
+        <summary>{% translate "Record a forfeit" %}</summary>
+        <form method="post" action="{% url 'matches:admin_result' match.pk %}" class="mt" novalidate>
+          {% csrf_token %}<input type="hidden" name="action" value="forfeit">
+          <fieldset class="form-field choice-group"><legend>{% translate "Which team forfeits?" %}</legend>
+            <label class="choice"><input type="radio" name="forfeiting" value="home"> {{ match.home_label }}</label>
+            <label class="choice"><input type="radio" name="forfeiting" value="away"> {{ match.away_label }}</label>
+          </fieldset>
+          <div class="form-field"><label for="forfeit-reason">{% translate "Reason" %}</label><input id="forfeit-reason" name="reason" type="text" maxlength="300"></div>
+          <button class="btn btn-danger" type="submit">{% translate "Record forfeit" %}</button>
+        </form>
+      </details>
+      {% if match.has_result %}
+      <details class="mt">
+        <summary>{% translate "Reopen the result" %}</summary>
+        <form method="post" action="{% url 'matches:admin_result' match.pk %}" class="mt" novalidate>
+          {% csrf_token %}<input type="hidden" name="action" value="reopen">
+          <div class="form-field"><label for="reopen-reason">{% translate "Reason" %}</label><input id="reopen-reason" name="reason" type="text" maxlength="300"></div>
+          <button class="btn btn-secondary" type="submit">{% translate "Reopen" %}</button>
+        </form>
+      </details>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <div class="card">
     {% if match.status == 'cancelled' %}
       <h2>{% translate "Cancelled" %}</h2>
       <p>{{ match.cancel_reason }}</p>

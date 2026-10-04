@@ -54,6 +54,7 @@ _SECTIONS = {
     "stage": "manage_competitions",
     "match_create": "manage_competitions",
     "match_edit": "manage_competitions",
+    "results_queue": "results",
     "my_matches": "matches",
     "coach_match": "matches",
 }

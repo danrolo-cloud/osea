@@ -11,7 +11,9 @@
   </div>
 </div>
 
-{% if match.state == 'scheduled' %}
+{% if match.has_result %}
+  <div class="alert alert-success"><p><strong>{% translate "Final result:" %}</strong> {{ match.home_label }} {{ match.score_label }} {{ match.away_label }}{% if match.game_scores %} <span class="small">({% for g in match.game_scores %}{{ g.0 }}-{{ g.1 }}{% if not forloop.last %}, {% endif %}{% endfor %})</span>{% endif %}</p></div>
+{% elif match.state == 'scheduled' %}
   <div class="alert alert-success"><p><strong>{% translate "Agreed time:" %}</strong> {{ match.scheduled_at|date:"l, F j, g:i a" }} {% translate "(Toronto time)" %}</p></div>
 {% elif match.state == 'bye' %}
   <div class="alert alert-info"><p>{% translate "Bye: no match to play this round." %}</p></div>
@@ -21,8 +23,52 @@
   <div class="alert alert-info"><p>{% translate "Waiting for earlier matches to decide who plays." %}</p></div>
 {% endif %}
 
+{% if match.is_playable %}
+<section class="card mb" aria-labelledby="h-result">
+  <h2 id="h-result">{% translate "Result" %}</h2>
+  {% if submission %}
+    <div class="alert {% if submission.status == 'disputed' %}alert-error{% elif can_confirm %}alert-warning{% else %}alert-info{% endif %}">
+      <p><strong>{% blocktranslate with team=submission.submitting_team.team_name h=submission.home_games a=submission.away_games home=match.home_label away=match.away_label %}{{ team }} reported: {{ home }} {{ h }}–{{ a }} {{ away }}{% endblocktranslate %}</strong>{% if submission.game_scores %} <span class="small">({% for g in submission.game_scores %}{{ g.0 }}-{{ g.1 }}{% if not forloop.last %}, {% endif %}{% endfor %})</span>{% endif %}{% if submission.note %}<br>“{{ submission.note }}”{% endif %}</p>
+      {% if submission.status == 'disputed' %}
+        <p>{% translate "Disputed:" %} {{ submission.dispute_reason }}<br>{% translate "OSEA will decide." %}</p>
+      {% elif can_confirm %}
+        <div class="btn-row">
+          <form method="post" action="{% url 'matches:confirm_result' match.pk submission.pk %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% translate "Confirm: this is correct" %}</button></form>
+        </div>
+        <details class="mt">
+          <summary>{% translate "Something's wrong" %}</summary>
+          <form method="post" action="{% url 'matches:dispute_result' match.pk submission.pk %}" class="mt" novalidate>
+            {% csrf_token %}
+            <div class="form-field"><label for="dispute-reason">{% translate "What's wrong?" %} <span class="required" aria-hidden="true">*</span></label><input id="dispute-reason" name="reason" type="text" maxlength="500"></div>
+            <button class="btn btn-danger" type="submit">{% translate "Dispute this result" %}</button>
+          </form>
+        </details>
+      {% else %}
+        <p class="small">{% translate "Waiting for the other team to confirm. If nobody answers within 48 hours, OSEA will review it." %}</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if not submission or not can_confirm %}
+  <details {% if not submission %}open{% endif %}>
+    <summary>{% if submission %}{% translate "Report a different result" %}{% else %}{% translate "Report the result" %}{% endif %}</summary>
+    <form method="post" action="{% url 'matches:submit_result' match.pk %}" class="mt" novalidate>
+      {% csrf_token %}
+      <div class="grid grid-2">
+        {% include "partials/field.html" with field=result_form.home_games %}
+        {% include "partials/field.html" with field=result_form.away_games %}
+      </div>
+      {% include "partials/field.html" with field=result_form.game_scores %}
+      {% include "partials/field.html" with field=result_form.note %}
+      <button class="btn btn-primary" type="submit">{% translate "Send result" %}</button>
+      <p class="help-text">{% translate "The other team's coach confirms it, and then it's final." %}</p>
+    </form>
+  </details>
+  {% endif %}
+</section>
+{% endif %}
+
 <div class="grid grid-2">
-  {% if match.is_playable %}
+  {% if match.is_playable and not submission %}
   <section class="card" aria-labelledby="h-time">
     <h2 id="h-time">{% if match.scheduled_at %}{% translate "Change the time" %}{% else %}{% translate "Arrange a time" %}{% endif %}</h2>
     {% if pending %}

@@ -21,7 +21,7 @@ from django.utils import timezone
 from accounts.models import User
 from competitions.models import Announcement, Competition, Division, Game, Registration, RosterEntry
 from matches import services as match_services
-from matches.models import Stage, TimeProposal
+from matches.models import Match, ResultSubmission, Stage
 from schools.models import CoachAccess, Membership, School, SchoolBoard, SchoolYear, Student
 
 DEMO_PASSWORD = "osea-demo-2026"
@@ -153,7 +153,7 @@ class Command(BaseCommand):
         self.stdout.write(f"{len(boards)} boards, {len(schools)} schools, {len(COACHES)} coaches, school year {year}.")
         self.stdout.write(
             "4 competitions: Valorant (opens Jan. 5), Smash singles (Oct. 8-27), Rocket League demo (open now), "
-            "Valorant Fall Showcase (under way: Swiss stage published, double-elimination playoffs in draft)."
+            "Valorant Fall Showcase (Swiss round 1 results in, double-elimination playoffs in draft)."
         )
         self.stdout.write("Sign in as admin@example.org (administrator) or coach@mvdsb.example.ca (coach).")
         self.stdout.write(self.style.SUCCESS(f"Demo password for all accounts: {DEMO_PASSWORD}"))
@@ -366,26 +366,46 @@ class Command(BaseCommand):
             playoffs, admin, teams, first_day=timezone.localdate() + datetime.timedelta(days=28), days_per_round=3
         )
 
-        # Swiss round 1 pairs seed 1 v 4, 2 v 5, 3 v 6:
-        #   Maplewood Lynx v Érables Éclair: Marie (Érables) has proposed a time for Jordan to answer.
-        #   St. Brigid Blaze v Maplewood Lynx B: a time is already agreed.
+        # Swiss round 1 pairs seed 1 v 4, 2 v 5, 3 v 6, all played earlier this week:
+        #   Cedar Ridge Comets v Northgate Knights: final, 2-1.
+        #   Maplewood Lynx v Érables Éclair: Marie (Érables) reported 2-1 to Lynx; Jordan can confirm it.
+        #   St. Brigid Blaze v Maplewood Lynx B: Jordan reported it 3 days ago, unconfirmed, so it's in OSEA's queue.
         def match_with(team):
             return swiss.matches.filter(models.Q(home=team) | models.Q(away=team)).get()
 
-        TimeProposal.objects.create(
-            match=match_with(teams[3]),
-            proposed_time=now + datetime.timedelta(days=3, hours=4),
-            proposing_team=teams[3],
-            proposed_by=coaches[5],
-            note="Our lab is free Thursday after school.",
+        played = now - datetime.timedelta(days=3)
+        final = match_with(teams[1])
+        final.scheduled_at = played
+        final.home_games, final.away_games, final.game_scores = 2, 1, [[13, 9], [10, 13], [13, 11]]
+        final.status, final.winner = Match.Status.COMPLETED, final.home
+        final.finalized_at, final.finalized_by = played + datetime.timedelta(hours=20), admin
+        final.save()
+
+        to_confirm = match_with(teams[3])
+        to_confirm.scheduled_at = played
+        to_confirm.save()
+        ResultSubmission.objects.create(
+            match=to_confirm,
+            submitting_team=teams[3],
+            submitted_by=coaches[5],
+            home_games=2,
+            away_games=1,
+            game_scores=[[13, 7], [11, 13], [13, 10]],
+            note="Great match, thanks!",
         )
-        agreed = match_with(teams[5])
-        agreed.scheduled_at = now + datetime.timedelta(days=2, hours=3)
-        agreed.save()
+
+        overdue = match_with(teams[5])
+        overdue.scheduled_at = played
+        overdue.save()
+        late = ResultSubmission.objects.create(
+            match=overdue, submitting_team=teams[5], submitted_by=coaches[0], home_games=0, away_games=2
+        )
+        ResultSubmission.objects.filter(pk=late.pk).update(created_at=played + datetime.timedelta(hours=2))
+
         Announcement.objects.create(
             competition=comp,
-            title="Swiss round 1 is live",
-            body="Agree on your match time with the other coach by Sunday night. Rules: https://example.org/rules",
+            title="Swiss round 1 results",
+            body="Report your result as soon as you finish; the other coach confirms it. Rules: https://example.org/rules",
             created_by=admin,
         )
         Announcement.objects.create(

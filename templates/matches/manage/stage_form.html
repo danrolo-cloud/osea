@@ -19,6 +19,18 @@
       {% include "partials/field.html" with field=form.swiss_rounds %}
     </div>
     {% include "partials/field.html" with field=form.is_published %}
+    <fieldset>
+      <legend>{% translate "Standings and results" %}</legend>
+      <p class="help-text">{% translate "Standings are used for round robin, Swiss and custom stages; brackets are decided by results." %}</p>
+      <div class="grid grid-2">
+        {% include "partials/field.html" with field=form.points_win %}
+        {% include "partials/field.html" with field=form.points_loss %}
+        {% for field in form.tiebreaker_fields %}{% include "partials/field.html" with field=field %}{% endfor %}
+      </div>
+      <p class="help-text">{% translate "A recorded OSEA decision always settles anything still tied." %}</p>
+      {% include "partials/field.html" with field=form.bye_counts_as_win %}
+      {% include "partials/field.html" with field=form.grand_final_reset %}
+    </fieldset>
     <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save stage" %}</button></div>
   </form>
 </div>

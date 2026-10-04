@@ -5,10 +5,13 @@
     {% if match.state == 'scheduled' %}<span class="match-time">{{ match.scheduled_at|date:"D M j, g:i a" }}</span>
     {% elif match.play_by and match.state == 'to_schedule' %}<span>{% blocktranslate with d=match.play_by|date:"M j" %}play by {{ d }}{% endblocktranslate %}</span>{% endif %}
   </div>
-  <div class="match-team{% if match.winner and match.winner == match.home %} is-winner{% endif %}">{% if match.home %}{{ match.home.team_name }}{% else %}<span class="muted">{{ match.home_label }}</span>{% endif %}</div>
-  <div class="match-team{% if match.winner and match.winner == match.away %} is-winner{% endif %}">{% if match.away %}{{ match.away.team_name }}{% else %}<span class="muted">{{ match.away_label }}</span>{% endif %}</div>
+  <div class="match-team{% if match.winner and match.winner == match.home %} is-winner{% endif %}">{% if match.home %}{{ match.home.team_name }}{% else %}<span class="muted">{{ match.home_label }}</span>{% endif %}{% if match.has_result %}<span class="match-score">{{ match.home_games }}</span>{% endif %}</div>
+  <div class="match-team{% if match.winner and match.winner == match.away %} is-winner{% endif %}">{% if match.away %}{{ match.away.team_name }}{% else %}<span class="muted">{{ match.away_label }}</span>{% endif %}{% if match.has_result %}<span class="match-score">{{ match.away_games }}</span>{% endif %}</div>
   <div class="match-foot">
-    {% if match.state == 'scheduled' %}<span class="badge badge-success">{{ match.get_state_display }}</span>
+    {% if match.state == 'final' %}<span class="badge badge-success">{% if match.status == 'forfeit' %}{% translate "Forfeit" %}{% else %}{% translate "Final" %}{% endif %}</span>
+    {% elif match.state == 'disputed' %}<span class="badge badge-danger">{{ match.get_state_display }}</span>
+    {% elif match.state == 'result_pending' %}<span class="badge badge-info">{{ match.get_state_display }}</span>
+    {% elif match.state == 'scheduled' %}<span class="badge badge-success">{{ match.get_state_display }}</span>
     {% elif match.state == 'to_schedule' %}<span class="badge badge-warning">{{ match.get_state_display }}</span>
     {% elif match.state == 'cancelled' %}<span class="badge badge-danger">{{ match.get_state_display }}</span>
     {% else %}<span class="badge badge-neutral">{{ match.get_state_display }}</span>{% endif %}

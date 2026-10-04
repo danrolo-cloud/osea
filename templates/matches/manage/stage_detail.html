@@ -56,6 +56,26 @@
 </section>
 {% endif %}
 
+{% if table %}
+<section class="mt" aria-labelledby="h-standings">
+  <div class="page-header">
+    <h2 id="h-standings">{% translate "Standings" %}</h2>
+    {% if can_pair_swiss %}
+      <form method="post" action="{% url 'matches:swiss_next_round' stage.pk %}">{% csrf_token %}<button class="btn btn-primary" type="submit">{% translate "Pair the next Swiss round" %}</button></form>
+    {% endif %}
+  </div>
+  {% url 'matches:tiebreak' stage.pk as decide_url %}
+  {% if any_tied %}{% include "matches/partials/standings.html" with decide_url=decide_url %}{% else %}{% include "matches/partials/standings.html" %}{% endif %}
+  {% if any_tied %}
+  <form id="tiebreak-form" method="post" action="{{ decide_url }}" class="mt">
+    {% csrf_token %}
+    <p class="help-text">{% translate "Teams marked * are tied after every tiebreaker. Enter OSEA's decision (1 = ranked higher) for those teams, then save. Leave blank otherwise." %}</p>
+    <button class="btn btn-secondary" type="submit">{% translate "Save decision" %}</button>
+  </form>
+  {% endif %}
+</section>
+{% endif %}
+
 <section class="mt" aria-labelledby="h-schedule">
   <div class="page-header"><h2 id="h-schedule">{% if stage.is_bracket %}{% translate "Bracket" %}{% else %}{% translate "Schedule" %}{% endif %}</h2></div>
   {% include "matches/partials/schedule.html" with link_kind="admin" %}

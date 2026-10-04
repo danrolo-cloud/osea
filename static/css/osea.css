@@ -338,7 +338,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .match-time { color: var(--purple-700); font-weight: 700; }
 .match-team { padding: 0.2rem 0; border-bottom: 1px solid var(--purple-50); font-weight: 500; }
 .match-team:last-of-type { border-bottom: 0; }
+.match-team { display: flex; justify-content: space-between; gap: 0.5rem; }
 .match-team.is-winner { font-weight: 700; color: var(--success); }
+.match-score { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 1.5ch; text-align: right; }
+.tied-flag { color: var(--warning); font-weight: 700; }
 .round-list { display: grid; gap: 1.25rem; }
 .round-list h3 { margin-bottom: 0.5rem; }
 .round-matches { display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }

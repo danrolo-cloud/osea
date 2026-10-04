@@ -1,0 +1,12 @@
+{% autoescape off %}Hello,
+
+{{ submission.submitting_team.team_name }} reported the result of your match in {{ match.stage.competition }}:
+
+{{ match.home.team_name }} {{ submission.home_games }}–{{ submission.away_games }} {{ match.away.team_name }}
+{% if submission.note %}Note: {{ submission.note }}
+{% endif %}
+Please confirm it, or dispute it if it's wrong: {{ link }}
+If nobody answers within 48 hours, OSEA will review it.
+
+Ontario School Esports Association
+{% endautoescape %}
