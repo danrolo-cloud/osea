@@ -5,18 +5,23 @@ management, competition registration, schedules, results and standings.
 
 See [docs/PLAN.md](docs/PLAN.md) for the agreed scope, decisions and phases.
 
-## Current status: Phase 0 (foundation)
+## Current status: Phase 1 (schools and coaches)
 
-What works:
-- Sign in with email and password, sign out, change password, reset a forgotten password
-  (in development, the reset email is printed to the terminal instead of sent).
-- Two roles, OSEA administrator and teacher coach, each with their own dashboard.
-  Permissions are checked on the server: a coach who types an admin address gets a "403 not allowed" page.
-- OSEA styling (purple and neon green, Montserrat and Roboto) on desktop and phone layouts.
-- A style guide page for admins showing buttons, forms, tables and messages.
+What works, with real data in the database:
+- **Coach sign-up:** account plus school request in one form, email confirmation link, "request another school".
+- **Coach approval:** admins review requests with warning flags (unconfirmed email, email from outside the school's
+  board, school not in the directory), then approve or decline with a message that is emailed to the coach.
+  Admins can remove access or turn off an account later.
+- **Permissions:** coaches only see schools they're approved for; this is checked on the server for every page.
+- **School directory:** boards (with staff email domains), schools, school years, and yearly membership with
+  payment recorded by hand. Exceptions require a reason.
+- **Dashboards:** admin dashboard lists coach requests and schools needing membership follow-up; coach dashboard
+  shows access status, approved schools and membership.
+- **Activity log** of every important change (who, when, before and after), which can't be edited or deleted.
+- **CSV exports** of schools, coaches and memberships.
 
-Not built yet: the dashboards' panels are labelled placeholders. Schools, coaches, competitions,
-registrations, schedules and results arrive in Phases 1–4.
+Not built yet: competitions, registrations, rosters, schedules, results (Phases 2–4). Those dashboard panels are
+labelled "coming in later phases". Emails print to the terminal in development; nothing is sent.
 
 ## Running it on your computer
 
@@ -33,13 +38,15 @@ createuser osea --pwprompt           # use the password "osea", or change DATABA
 createdb osea --owner osea
 
 python manage.py migrate             # set up the database tables
-python manage.py seed_demo           # fictional demo accounts (development only)
+python manage.py seed_demo           # fictional boards, schools and coaches (development only)
 python manage.py runserver           # then open http://127.0.0.1:8000
 ```
 
 Demo accounts (fictional, development only), password `osea-demo-2026`:
 - `admin@example.org`: OSEA administrator
-- `coach@example.org`: teacher coach
+- `coach@mvdsb.example.ca`: teacher coach (approved at one school, pending at another)
+
+To create a real administrator account: `python manage.py createsuperuser`.
 
 ## Checks
 
@@ -55,8 +62,10 @@ Both run automatically on GitHub for every push.
 | Folder | Contents |
 |---|---|
 | `config/` | Site-wide settings and web addresses |
-| `accounts/` | User accounts, sign-in, roles, permission checks |
-| `core/` | Home page and dashboards |
+| `accounts/` | User accounts, sign-in, sign-up, email confirmation, roles |
+| `schools/` | School boards, schools, school years, memberships, coach access and approval |
+| `audit/` | The activity log |
+| `core/` | Home page, dashboards, CSV export helper |
 | `templates/` | Page layouts (HTML) |
 | `static/` | Stylesheet, fonts, small scripts |
 | `docs/` | Plan and decisions |

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{% translate "Schools" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Schools" %}</h1>
+    <p class="lede">{% if year %}{% blocktranslate %}Membership shown for {{ year }}.{% endblocktranslate %}{% else %}{% translate "No current school year is set, so membership isn't shown." %} <a href="{% url 'schools:year_list' %}">{% translate "Set one" %}</a>{% endif %}</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'schools:school_create' %}">{% translate "Add a school" %}</a>
+</div>
+
+<form class="filters" method="get" role="search">
+  <div class="form-field grow">
+    <label for="q">{% translate "Search" %}</label>
+    <input id="q" type="search" name="q" value="{{ filters.q }}" placeholder="{% translate 'School name or city' %}">
+  </div>
+  <div class="form-field">
+    <label for="board">{% translate "Board" %}</label>
+    <select id="board" name="board">
+      <option value="">{% translate "All boards" %}</option>
+      {% for b in boards %}<option value="{{ b.pk }}" {% if filters.board == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+      <option value="none" {% if filters.board == "none" %}selected{% endif %}>{% translate "Independent" %}</option>
+    </select>
+  </div>
+  <div class="form-field">
+    <label for="level">{% translate "Level" %}</label>
+    <select id="level" name="level">
+      <option value="">{% translate "All levels" %}</option>
+      {% for value, label in levels %}<option value="{{ value }}" {% if filters.level == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  {% if year %}
+  <div class="form-field">
+    <label for="membership">{% translate "Membership" %}</label>
+    <select id="membership" name="membership">
+      <option value="">{% translate "Any" %}</option>
+      {% for value, label in membership_choices %}<option value="{{ value }}" {% if filters.membership == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      <option value="none" {% if filters.membership == "none" %}selected{% endif %}>{% translate "No record" %}</option>
+    </select>
+  </div>
+  {% endif %}
+  <div class="form-field">
+    <label for="active">{% translate "Show" %}</label>
+    <select id="active" name="active">
+      <option value="1" {% if filters.active == "1" %}selected{% endif %}>{% translate "Active schools" %}</option>
+      <option value="0" {% if filters.active == "0" %}selected{% endif %}>{% translate "Inactive schools" %}</option>
+      <option value="all" {% if filters.active == "all" %}selected{% endif %}>{% translate "All schools" %}</option>
+    </select>
+  </div>
+  <button class="btn btn-secondary" type="submit">{% translate "Filter" %}</button>
+</form>
+
+{% if page.object_list %}
+<p class="result-count">{% blocktranslate count n=page.paginator.count %}{{ n }} school{% plural %}{{ n }} schools{% endblocktranslate %}</p>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "School" %}</th>
+        <th scope="col" class="hide-sm">{% translate "Board" %}</th>
+        <th scope="col" class="hide-sm">{% translate "Level" %}</th>
+        {% if year %}<th scope="col">{% blocktranslate %}Membership {{ year }}{% endblocktranslate %}</th>{% endif %}
+        <th scope="col" class="num">{% translate "Coaches" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for school in page %}
+      <tr>
+        <th scope="row"><a href="{% url 'schools:school_detail' school.pk %}">{{ school.name }}</a><br><span class="muted small">{{ school.city }}</span>{% if not school.is_active %} <span class="badge badge-neutral">{% translate "Inactive" %}</span>{% endif %}</th>
+        <td class="hide-sm">{{ school.board.name|default:_("Independent") }}</td>
+        <td class="hide-sm">{{ school.get_level_display }}</td>
+        {% if year %}<td>{% if school.membership_status == 'confirmed' %}{% status_badge 'confirmed' _('Confirmed') %}{% elif school.membership_status == 'pending' %}{% status_badge 'pending' _('Pending') %}{% elif school.membership_status == 'exempt' %}{% status_badge 'exempt' _('Exception granted') %}{% else %}{% status_badge '' _('No record') %}{% endif %}</td>{% endif %}
+        <td class="num">{{ school.approved_coaches }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+<div class="card empty-state">
+  <h2>{% translate "No schools match" %}</h2>
+  <p>{% translate "Try clearing the filters, or add a school." %}</p>
+</div>
+{% endif %}
+{% endblock %}

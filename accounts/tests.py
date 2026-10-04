@@ -101,9 +101,12 @@ class SeedDemoCommandTests(TestCase):
         self.assertFalse(User.objects.exists())
 
     @override_settings(DEBUG=True)
-    def test_creates_demo_accounts_and_can_run_twice(self):
+    def test_creates_demo_data_and_can_run_twice(self):
         call_command("seed_demo", stdout=StringIO())
+        count = User.objects.count()
         call_command("seed_demo", stdout=StringIO())
-        self.assertEqual(User.objects.count(), 2)
+        self.assertEqual(User.objects.count(), count)
         self.assertTrue(User.objects.get(email="admin@example.org").is_osea_admin)
-        self.assertTrue(User.objects.get(email="coach@example.org").is_coach)
+        self.assertTrue(User.objects.get(email="coach@mvdsb.example.ca").is_coach)
+        # Every demo email uses a reserved ".example" domain that can't belong to a real person.
+        self.assertFalse(User.objects.exclude(email__regex=r"@([a-z]+\.)*example(\.[a-z]+)?$").exists())

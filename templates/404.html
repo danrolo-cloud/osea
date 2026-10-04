@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Page not found{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Page not found" %}{% endblock %}
 {% block content %}
 <div class="card card-narrow">
-  <p class="eyebrow">Error 404</p>
-  <h1>Page not found</h1>
-  <p>The page may have moved, or the link may be mistyped.</p>
-  <a class="btn btn-primary" href="{% url 'core:home' %}">Go to the home page</a>
+  <p class="eyebrow">{% translate "Error 404" %}</p>
+  <h1>{% translate "Page not found" %}</h1>
+  <p>{% translate "The page may have moved, or the link may be mistyped." %}</p>
+  <a class="btn btn-primary" href="{% url 'core:home' %}">{% translate "Go to the home page" %}</a>
 </div>
 {% endblock %}

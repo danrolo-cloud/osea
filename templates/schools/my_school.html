@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{{ school.name }}{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'core:dashboard' %}">← {% translate "Dashboard" %}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ school.get_level_display }}</p>
+    <h1>{{ school.name }}</h1>
+    <p class="lede">{{ school.city }} · {{ school.board.name|default:_("Independent school") }}</p>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="h-membership">
+    <h2 id="h-membership">{% translate "OSEA membership" %}</h2>
+    {% if year %}
+      <p>{{ year }}: {% if membership %}{% status_badge membership.status membership.get_status_display %}{% else %}{% status_badge '' _('Not recorded yet') %}{% endif %}</p>
+      {% if not membership or membership.status == 'pending' %}
+        <p class="help-text">{% translate "Teams can register while membership is pending, but OSEA can't approve them until it's confirmed. Contact OSEA if you have questions about payment." %}</p>
+      {% endif %}
+    {% else %}
+      <p class="muted">{% translate "Membership for this school year hasn't been set up yet." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-coaches">
+    <h2 id="h-coaches">{% translate "Other coaches at this school" %}</h2>
+    {% for access in co_coaches %}
+      <p>{{ access.coach.get_full_name }}<br><span class="muted small">{{ access.coach.email }}</span></p>
+    {% empty %}
+      <p class="muted">{% translate "You're the only approved coach so far." %}</p>
+    {% endfor %}
+  </section>
+</div>
+
+<section class="card mt" aria-labelledby="h-teams">
+  <h2 id="h-teams">{% translate "Teams and students" %}</h2>
+  <div class="placeholder-note"><p><strong>{% translate "Phase 2:" %}</strong> {% translate "registering teams, managing rosters and student details will appear here." %}</p></div>
+</section>
+{% endblock %}

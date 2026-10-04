@@ -1,36 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Coach dashboard{% endblock %}
+{% load i18n osea %}
+{% block title %}{% translate "Coach dashboard" %}{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <p class="eyebrow">Teacher coach</p>
-    <h1>Welcome, {{ user.first_name }}</h1>
-    <p class="lede">Your teams, registrations, matches and results in one place.</p>
+    <p class="eyebrow">{% translate "Teacher coach" %}</p>
+    <h1>{% blocktranslate with name=user.first_name %}Welcome, {{ name }}{% endblocktranslate %}</h1>
+    <p class="lede">{% translate "Your schools, teams, matches and results in one place." %}</p>
   </div>
+  <a class="btn btn-secondary" href="{% url 'schools:request_school' %}">{% translate "Request another school" %}</a>
 </div>
 
-<div class="placeholder-note" role="note">
-  <p><strong>Phase 0 foundation:</strong> you are signed in as a coach and can only reach coach pages. The panels below
-  are not connected to data yet. Each one says which phase will make it work.</p>
-</div>
+{% if needs_verification or pending or closed %}
+<section class="card mb" aria-labelledby="h-attention">
+  <h2 id="h-attention">{% translate "Needs your attention" %}</h2>
+  <ul class="task-list">
+    {% if needs_verification %}
+      <li>
+        <div><strong>{% translate "Confirm your email address" %}</strong><br><span class="muted small">{% blocktranslate with email=user.email %}We sent a link to {{ email }}. OSEA can't approve your access until you click it.{% endblocktranslate %}</span></div>
+        <form method="post" action="{% url 'accounts:resend_verification' %}">{% csrf_token %}<button class="btn btn-secondary" type="submit">{% translate "Resend link" %}</button></form>
+      </li>
+    {% endif %}
+    {% for access in pending %}
+      <li>
+        <div><strong>{{ access.school_label }}</strong><br><span class="muted small">{% blocktranslate with date=access.requested_at|date:"M j" %}Requested {{ date }}. OSEA will email you when it's reviewed.{% endblocktranslate %}</span></div>
+        {% status_badge access.status access.get_status_display %}
+      </li>
+    {% endfor %}
+    {% for access in closed %}
+      <li>
+        <div><strong>{{ access.school_label }}</strong>{% if access.decision_note %}<br><span class="muted small">{% translate "OSEA:" %} {{ access.decision_note }}</span>{% endif %}</div>
+        {% status_badge access.status access.get_status_display %}
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
 
-<div class="grid grid-2 mt">
-  <section class="card" aria-labelledby="h-attention">
-    <div class="card-header"><h2 id="h-attention">Needs your attention</h2><span class="badge badge-neutral">Phase 1–4</span></div>
-    <p class="help-text">School access status, incomplete registrations, and results waiting for you.</p>
-  </section>
-  <section class="card" aria-labelledby="h-registrations">
-    <div class="card-header"><h2 id="h-registrations">My registrations</h2><span class="badge badge-neutral">Phase 2</span></div>
-    <p class="help-text">Drafts, submitted registrations, and any changes OSEA has asked for.</p>
-  </section>
-  <section class="card" aria-labelledby="h-matches">
-    <div class="card-header"><h2 id="h-matches">Next matches</h2><span class="badge badge-neutral">Phase 3</span></div>
-    <p class="help-text">Your teams' upcoming matches, in Toronto time.</p>
-  </section>
-  <section class="card" aria-labelledby="h-announcements">
-    <div class="card-header"><h2 id="h-announcements">Announcements</h2><span class="badge badge-neutral">Phase 3</span></div>
-    <p class="help-text">Updates for the competitions your teams are in.</p>
-  </section>
-</div>
+<section aria-labelledby="h-schools">
+  <h2 id="h-schools">{% translate "My schools" %}</h2>
+  {% if approved %}
+    <div class="grid grid-2">
+      {% for access in approved %}
+        <article class="card">
+          <h3><a href="{% url 'schools:my_school' access.school.pk %}">{{ access.school.name }}</a></h3>
+          <p class="muted">{{ access.school.city }}</p>
+          {% if year %}
+            <p>{% blocktranslate %}{{ year }} membership:{% endblocktranslate %}
+              {% if access.membership %}{% status_badge access.membership.status access.membership.get_status_display %}{% else %}{% status_badge '' _('Not recorded yet') %}{% endif %}
+            </p>
+          {% endif %}
+          <a class="btn btn-primary" href="{% url 'schools:my_school' access.school.pk %}">{% translate "Open school" %}</a>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card empty-state">
+      <h3>{% translate "No approved schools yet" %}</h3>
+      <p>{% translate "Once OSEA approves your request, your school appears here." %}</p>
+    </div>
+  {% endif %}
+</section>
+
+<section class="card mt" aria-labelledby="h-later">
+  <h2 id="h-later">{% translate "Coming in later phases" %}</h2>
+  <ul class="task-list">
+    <li><span>{% translate "Register teams and rosters for competitions" %}</span><span class="badge badge-neutral">{% translate "Phase 2" %}</span></li>
+    <li><span>{% translate "Your teams' upcoming matches and announcements" %}</span><span class="badge badge-neutral">{% translate "Phase 3" %}</span></li>
+    <li><span>{% translate "Submit and confirm results" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
+  </ul>
+</section>
 {% endblock %}

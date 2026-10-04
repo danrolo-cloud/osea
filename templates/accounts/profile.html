@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Your account" %}{% endblock %}
+{% block content %}
+<div class="card card-narrow">
+  <h1>{% translate "Your account" %}</h1>
+  <dl class="details">
+    <dt>{% translate "Email" %}</dt>
+    <dd>{{ user.email }}{% if user.email_verified_at %} <span class="badge badge-success">{% translate "Confirmed" %}</span>{% else %} <span class="badge badge-warning">{% translate "Not confirmed" %}</span>{% endif %}</dd>
+    <dt>{% translate "Role" %}</dt>
+    <dd>{{ user.get_role_display }}</dd>
+  </dl>
+  <p class="help-text">{% translate "To change your email address, contact OSEA." %}</p>
+  <hr>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.first_name %}
+    {% include "partials/field.html" with field=form.last_name %}
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">{% translate "Save" %}</button>
+      <a href="{% url 'accounts:password_change' %}">{% translate "Change password" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

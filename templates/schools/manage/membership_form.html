@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Membership" %}{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'schools:school_detail' school.pk %}">← {{ school.name }}</a>
+<div class="card card-medium">
+  <p class="eyebrow">{{ school.name }}</p>
+  <h1>{% blocktranslate %}{{ year }} membership{% endblocktranslate %}</h1>
+  <p class="help-text">{% translate "Record payment by hand. Teams can't be approved for competitions until membership is confirmed or an exception is granted." %}</p>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.status %}
+    <div class="grid grid-2">
+      {% include "partials/field.html" with field=form.amount %}
+      {% include "partials/field.html" with field=form.paid_on %}
+    </div>
+    {% include "partials/field.html" with field=form.reference %}
+    {% include "partials/field.html" with field=form.notes %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save membership" %}</button></div>
+  </form>
+</div>
+{% endblock %}

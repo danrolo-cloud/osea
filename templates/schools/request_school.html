@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Request access to a school" %}{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'core:dashboard' %}">← {% translate "Dashboard" %}</a>
+<div class="card card-medium">
+  <h1>{% translate "Request access to a school" %}</h1>
+  <p>{% translate "For coaches who work with more than one school. OSEA reviews every request." %}</p>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.school %}
+    {% include "partials/field.html" with field=form.requested_school_name %}
+    {% include "partials/field.html" with field=form.position %}
+    {% include "partials/field.html" with field=form.attestation %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Send request" %}</button></div>
+  </form>
+</div>
+{% endblock %}

@@ -1,12 +1,13 @@
 # OSEA platform: plan and decisions
 
-Last updated: 2026-10-04
+Last updated: 2026-10-04 (Phase 1 complete)
 
 ## Goal
 
 One place where OSEA runs competitions and teacher coaches manage their
-school's participation. The first release runs **one Rocket League season**
-end to end, rolling out in **January 2027**.
+school's participation. The platform **goes live in January 2027**. The first
+title to open registration after launch is **Valorant**, but which titles run,
+and when, is decided by administrators inside the app, not built into the code.
 
 First complete workflow:
 
@@ -34,9 +35,11 @@ First complete workflow:
 2. **Student data.** First name, last initial, gamer tag, grade, and optional game rank.
    The coach confirms school consent forms are on file (recorded with who and when); forms are not uploaded.
    Gamer tags are not public in v1. Data hosted in Canada.
-3. **Rocket League pilot rules.** 3v3, rosters of 3–5 players, best-of-5 matches, round robin within each division.
-   Standings by match wins; tiebreakers: head-to-head, then game difference, then a recorded admin decision.
-   A forfeit counts as a 3–0 loss.
+3. **Competition rules are set per competition by administrators.** Games (Valorant, Rocket League, Smash…) are
+   records admins create; each competition sets its team size, roster minimum/maximum, match length (best of N),
+   standings points and tiebreaker order. Starting example (Rocket League): 3v3, rosters of 3–5, best-of-5,
+   round robin within each division; standings by match wins; tiebreakers head-to-head, then game difference,
+   then a recorded admin decision; a forfeit counts as a 3–0 loss.
 4. **Result confirmation.** The opposing coach confirms or disputes within 48 hours. No response sends it to the
    admin queue with one-click finalize (no automatic finalization). Disputes always go to an admin.
    Admins can enter or correct any result, and every change is logged.
@@ -46,6 +49,11 @@ First complete workflow:
 6. **Registration windows are per competition.** Admins set each competition's own registration opening and closing
    dates (and roster deadline); nothing is fixed platform-wide. Example: Super Smash Bros. Ultimate registration
    opens 2026-10-08 and closes 2026-10-27. Rules differ by title too: Smash rosters may be a single player, Rocket League 3–5.
+
+7. **Go-live and first title.** Live in January 2027. Valorant is the first title to open registration after launch;
+   administrators create it (and every later title) in the app.
+8. **Language.** English at launch. All screen text is marked for translation from Phase 1 onward, so French can be
+   added later by supplying translations, without reworking screens.
 
 Registration statuses: draft → submitted → (changes requested → submitted) → approved / waitlisted; withdrawn at any point.
 
@@ -77,11 +85,21 @@ automatic round-robin generation, result screenshot uploads, notification emails
 | Phase | Outcome | Target |
 |---|---|---|
 | 0. Foundation | Sign-in, roles, server-side permission checks, brand styling, tests running on GitHub | ✅ Oct 4 |
-| 1. Schools & coaches | School directory, coach sign-up and approval, yearly membership, activity log, CSV export | mid-Oct |
-| 2. Competitions & registration | Competition setup, divisions, team registration with rosters, review queue, division assignment | early Nov |
+| 1. Schools & coaches | School directory, coach sign-up and approval, yearly membership, activity log, CSV export | ✅ Oct 4 |
+| 2. Competitions & registration | Admin-managed games and competitions (own dates and rules), divisions, team registration with rosters, review queue, division assignment | early Nov |
 | 3. Schedules & announcements | Fixtures, publishing, reschedule/forfeit/cancel/bye, coach "next match", public schedule, announcements | mid-Nov |
 | 4. Results & standings | Submit, confirm or dispute, admin finalize, standings with tiebreakers, public standings | early Dec |
 | 5. Pilot readiness | Hosting set up (with approval), admin two-factor sign-in, backup guide, pilot with a few coaches | before Dec 18 |
-| Launch | Real coaches onboarded, Rocket League season runs | January 2027 |
+| Launch | Real coaches onboarded; Valorant registration opens | January 2027 |
 
 Targets assume regular review checkpoints with OSEA. The December pilot must finish before the winter break.
+
+## Phase 1 notes
+
+- Coach sign-up requires a confirmed email address before an admin can approve access. Confirmation links are
+  signed, expire after three days, and stop working if the address changes.
+- Coaches who type a school that isn't in the directory are held until an admin adds the school and links it.
+- The activity log is permanent: the app refuses edits and deletions, and a database rule blocks bulk changes too.
+- Exports are CSV files; cells that a spreadsheet would treat as formulas are neutralised, and every download is logged.
+- New administrator accounts are created in the back office (`/back-office/`) or with
+  `python manage.py createsuperuser` for now; an admin-management screen can come later.

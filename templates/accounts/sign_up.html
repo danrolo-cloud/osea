@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Coach sign up" %}{% endblock %}
+
+{% block content %}
+<div class="card card-medium">
+  <h1>{% translate "Create a coach account" %}</h1>
+  <p>{% blocktranslate %}For teachers and school staff who coach esports teams. OSEA checks every request before a coach can see or manage a school's teams.{% endblocktranslate %}</p>
+  {% if account_form.errors or school_form.errors %}
+    <div class="alert alert-error" role="alert"><p>{% translate "Please fix the highlighted fields below." %}</p></div>
+  {% endif %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <fieldset>
+      <legend>{% translate "About you" %}</legend>
+      <div class="grid grid-2">
+        {% include "partials/field.html" with field=account_form.first_name %}
+        {% include "partials/field.html" with field=account_form.last_name %}
+      </div>
+      {% include "partials/field.html" with field=account_form.email %}
+      <div class="grid grid-2">
+        {% include "partials/field.html" with field=account_form.password1 %}
+        {% include "partials/field.html" with field=account_form.password2 %}
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>{% translate "Your school" %}</legend>
+      {% for error in school_form.non_field_errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      {% include "partials/field.html" with field=school_form.school %}
+      {% include "partials/field.html" with field=school_form.requested_school_name %}
+      {% include "partials/field.html" with field=school_form.position %}
+      {% include "partials/field.html" with field=school_form.attestation %}
+    </fieldset>
+    <div class="form-actions">
+      <button class="btn btn-primary" type="submit">{% translate "Create account" %}</button>
+      <span class="muted">{% translate "Already have an account?" %} <a href="{% url 'accounts:login' %}">{% translate "Sign in" %}</a></span>
+    </div>
+  </form>
+</div>
+{% endblock %}

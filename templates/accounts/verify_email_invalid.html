@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Link expired" %}{% endblock %}
+{% block content %}
+<div class="card card-narrow">
+  <h1>{% translate "This link doesn't work any more" %}</h1>
+  <div class="alert alert-warning"><p>{% translate "Confirmation links expire after three days, or when the email address on the account changes." %}</p></div>
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'accounts:resend_verification' %}">
+      {% csrf_token %}
+      <button class="btn btn-primary" type="submit">{% translate "Send a new link" %}</button>
+    </form>
+  {% else %}
+    <p>{% translate "Sign in and you'll be able to send yourself a new link." %}</p>
+    <a class="btn btn-primary" href="{% url 'accounts:login' %}">{% translate "Sign in" %}</a>
+  {% endif %}
+</div>
+{% endblock %}

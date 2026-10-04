@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
@@ -48,12 +49,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
 
     class Role(models.TextChoices):
-        ADMIN = "admin", "OSEA administrator"
-        COACH = "coach", "Teacher coach"
+        ADMIN = "admin", _("OSEA administrator")
+        COACH = "coach", _("Teacher coach")
 
-    email = models.EmailField("email address", unique=True)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
+    email = models.EmailField(_("email address"), unique=True)
+    first_name = models.CharField(_("first name"), max_length=150)
+    last_name = models.CharField(_("last name"), max_length=150)
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.COACH)
 
     is_active = models.BooleanField(
@@ -65,6 +66,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text="Can open the built-in back-office screen. Keep this to very few people.",
     )
     date_joined = models.DateTimeField(default=timezone.now)
+    email_verified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this person proved they can receive email at this address.",
+    )
 
     objects = UserManager()
 

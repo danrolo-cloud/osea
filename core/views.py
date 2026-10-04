@@ -7,6 +7,9 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 
 from accounts.permissions import admin_required, coach_required
+from audit.models import AuditEvent
+from schools.manage_views import schools_needing_membership_attention
+from schools.models import CoachAccess, Membership, SchoolYear
 
 
 @require_GET
@@ -26,12 +29,40 @@ def dashboard(request):
 
 @admin_required
 def admin_dashboard(request):
-    return render(request, "core/admin_dashboard.html")
+    year = SchoolYear.current()
+    pending = CoachAccess.objects.pending().select_related("coach", "school__board").order_by("requested_at")
+    membership_attention = schools_needing_membership_attention(year)
+    context = {
+        "year": year,
+        "pending_requests": pending[:5],
+        "pending_count": pending.count(),
+        "membership_attention": membership_attention[:5],
+        "membership_attention_count": membership_attention.count(),
+        "recent_activity": AuditEvent.objects.select_related("actor")[:6],
+    }
+    return render(request, "core/admin_dashboard.html", context)
 
 
 @coach_required
 def coach_dashboard(request):
-    return render(request, "core/coach_dashboard.html")
+    year = SchoolYear.current()
+    access_list = list(request.user.school_access.select_related("school").order_by("status", "requested_at"))
+    approved = [a for a in access_list if a.status == CoachAccess.Status.APPROVED and a.school.is_active]
+    memberships = {}
+    if year and approved:
+        memberships = {
+            m.school_id: m for m in Membership.objects.filter(school_year=year, school__in=[a.school for a in approved])
+        }
+    for access in approved:
+        access.membership = memberships.get(access.school_id)
+    context = {
+        "year": year,
+        "approved": approved,
+        "pending": [a for a in access_list if a.status == CoachAccess.Status.PENDING],
+        "closed": [a for a in access_list if a.status in (CoachAccess.Status.DECLINED, CoachAccess.Status.REVOKED)],
+        "needs_verification": not request.user.email_verified_at,
+    }
+    return render(request, "core/coach_dashboard.html", context)
 
 
 @admin_required

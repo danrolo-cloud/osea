@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "School years" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "School years" %}</h1>
+    <p class="lede">{% translate "Memberships are tracked per school year. Dashboards use the current one." %}</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'schools:year_create' %}">{% translate "Add a school year" %}</a>
+</div>
+{% if years %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th scope="col">{% translate "School year" %}</th><th scope="col">{% translate "Dates" %}</th><th scope="col">{% translate "Current" %}</th><th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th></tr></thead>
+    <tbody>
+      {% for year in years %}
+      <tr>
+        <th scope="row">{{ year.name }}</th>
+        <td>{{ year.start_date|date:"M j, Y" }} – {{ year.end_date|date:"M j, Y" }}</td>
+        <td>{% if year.is_current %}<span class="badge badge-success">{% translate "Current" %}</span>{% endif %}</td>
+        <td class="table-actions"><a href="{% url 'schools:year_edit' year.pk %}">{% translate "Edit" %}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty-state"><h2>{% translate "No school years yet" %}</h2><p>{% translate "Add the current school year to start recording memberships." %}</p></div>
+{% endif %}
+{% endblock %}

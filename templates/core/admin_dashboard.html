@@ -1,40 +1,81 @@
 {% extends "base.html" %}
-{% block title %}Admin dashboard{% endblock %}
+{% load i18n osea %}
+{% block title %}{% translate "Admin dashboard" %}{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <p class="eyebrow">OSEA administrator</p>
-    <h1>Welcome, {{ user.first_name }}</h1>
-    <p class="lede">This is where you'll see everything that needs OSEA's attention.</p>
+    <p class="eyebrow">{% translate "OSEA administrator" %}</p>
+    <h1>{% blocktranslate with name=user.first_name %}Welcome, {{ name }}{% endblocktranslate %}</h1>
+    <p class="lede">{% if year %}{% blocktranslate %}School year {{ year }}{% endblocktranslate %}{% else %}{% translate "What needs OSEA's attention." %}{% endif %}</p>
   </div>
 </div>
 
-<div class="placeholder-note" role="note">
-  <p><strong>Phase 0 foundation:</strong> sign-in, roles and permission checks work. The panels below are
-  not connected to data yet. Each one says which phase will make it work.</p>
-</div>
+{% if not year %}
+  <div class="alert alert-warning" role="note"><p>{% translate "No current school year is set, so membership checks are off." %} <a href="{% url 'schools:year_create' %}">{% translate "Add the current school year" %}</a></p></div>
+{% endif %}
 
-<div class="grid grid-2 mt">
+<div class="grid grid-2">
   <section class="card" aria-labelledby="h-coach-approvals">
-    <div class="card-header"><h2 id="h-coach-approvals">Coach access requests</h2><span class="badge badge-neutral">Phase 1</span></div>
-    <p class="help-text">Coaches asking to manage a school, waiting for you to approve or decline.</p>
+    <div class="card-header">
+      <h2 id="h-coach-approvals">{% translate "Coach requests" %}</h2>
+      {% if pending_count %}<span class="badge badge-warning">{% blocktranslate count n=pending_count %}{{ n }} waiting{% plural %}{{ n }} waiting{% endblocktranslate %}</span>{% endif %}
+    </div>
+    {% if pending_requests %}
+      <ul class="task-list">
+        {% for access in pending_requests %}
+          <li>
+            <div>
+              <strong>{{ access.coach.get_full_name }}</strong><br>
+              <span class="muted small">{{ access.school_label }}</span>
+              {% with flags=access.review_flags %}{% if flags %}<br><span class="small text-warning">{% blocktranslate count n=flags|length %}{{ n }} thing to check{% plural %}{{ n }} things to check{% endblocktranslate %}</span>{% endif %}{% endwith %}
+            </div>
+            <a class="btn btn-secondary" href="{% url 'schools:access_request' access.pk %}">{% translate "Review" %}</a>
+          </li>
+        {% endfor %}
+      </ul>
+      {% if pending_count > 5 %}<p class="mt"><a href="{% url 'schools:access_requests' %}">{% translate "See all requests" %}</a></p>{% endif %}
+    {% else %}
+      <p class="muted">{% translate "No coach requests waiting." %}</p>
+    {% endif %}
   </section>
+
   <section class="card" aria-labelledby="h-membership">
-    <div class="card-header"><h2 id="h-membership">Membership records</h2><span class="badge badge-neutral">Phase 1</span></div>
-    <p class="help-text">Schools whose membership for this school year is pending or unpaid.</p>
+    <div class="card-header">
+      <h2 id="h-membership">{% translate "Membership to follow up" %}</h2>
+      {% if membership_attention_count %}<span class="badge badge-warning">{{ membership_attention_count }}</span>{% endif %}
+    </div>
+    {% if membership_attention %}
+      <p class="help-text">{% translate "Schools with coaches but no confirmed membership this year." %}</p>
+      <ul class="task-list">
+        {% for school in membership_attention %}
+          <li>
+            <div><strong>{{ school.name }}</strong><br><span class="muted small">{{ school.city }}</span></div>
+            <div class="btn-row">
+              {% if school.membership_status == 'pending' %}{% status_badge 'pending' _('Pending') %}{% else %}{% status_badge '' _('No record') %}{% endif %}
+              <a class="btn btn-secondary" href="{% url 'schools:membership_edit' school.pk year.pk %}">{% translate "Update" %}</a>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+      {% if membership_attention_count > 5 %}<p class="mt"><a href="{% url 'schools:school_list' %}?membership=pending">{% translate "See all" %}</a></p>{% endif %}
+    {% elif year %}
+      <p class="muted">{% translate "Every school with coaches has a confirmed membership." %}</p>
+    {% endif %}
   </section>
-  <section class="card" aria-labelledby="h-registrations">
-    <div class="card-header"><h2 id="h-registrations">Registrations to review</h2><span class="badge badge-neutral">Phase 2</span></div>
-    <p class="help-text">Submitted team registrations, incomplete rosters and roster-change requests.</p>
+
+  <section class="card" aria-labelledby="h-activity">
+    <div class="card-header"><h2 id="h-activity">{% translate "Recent activity" %}</h2><a href="{% url 'audit:activity_log' %}">{% translate "Full log" %}</a></div>
+    {% include "partials/history.html" with events=recent_activity %}
   </section>
-  <section class="card" aria-labelledby="h-deadlines">
-    <div class="card-header"><h2 id="h-deadlines">Upcoming deadlines</h2><span class="badge badge-neutral">Phase 2–3</span></div>
-    <p class="help-text">Registration closings, roster deadlines and competition start dates.</p>
-  </section>
-  <section class="card" aria-labelledby="h-results">
-    <div class="card-header"><h2 id="h-results">Results and disputes</h2><span class="badge badge-neutral">Phase 4</span></div>
-    <p class="help-text">Disputed results and results unconfirmed after 48 hours.</p>
+
+  <section class="card" aria-labelledby="h-later">
+    <div class="card-header"><h2 id="h-later">{% translate "Coming in later phases" %}</h2></div>
+    <ul class="task-list">
+      <li><span>{% translate "Registrations to review and roster problems" %}</span><span class="badge badge-neutral">{% translate "Phase 2" %}</span></li>
+      <li><span>{% translate "Registration and roster deadlines" %}</span><span class="badge badge-neutral">{% translate "Phase 2–3" %}</span></li>
+      <li><span>{% translate "Disputed and unconfirmed results" %}</span><span class="badge badge-neutral">{% translate "Phase 4" %}</span></li>
+    </ul>
   </section>
 </div>
 {% endblock %}

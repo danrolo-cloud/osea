@@ -1,9 +1,20 @@
-{# Renders one form field with its label, help text and errors. Usage: {% include "partials/field.html" with field=form.email %} #}
-<div class="form-field{% if field.errors %} has-error{% endif %}">
+{% load i18n %}{# One form field with label, help text and errors. Usage: {% include "partials/field.html" with field=form.email %} #}
+{% if field.widget_type == "checkbox" %}
+<div class="form-field checkbox{% if field.errors %} has-error{% endif %}">
+  {{ field }}
+  <div>
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required" aria-hidden="true">*</span>{% endif %}</label>
+    {% if field.help_text %}<span class="help-text" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</span>{% endif %}
+    {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="form-field{% if field.errors %} has-error{% endif %}{% if grow %} grow{% endif %}">
   <label for="{{ field.id_for_label }}">
     {{ field.label }}{% if field.field.required %} <span class="required" aria-hidden="true">*</span>{% endif %}
   </label>
   {{ field }}
   {% if field.help_text %}<span class="help-text" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</span>{% endif %}
-  {% for error in field.errors %}<p class="field-error" id="{{ field.auto_id }}_error">{{ error }}</p>{% endfor %}
+  {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
 </div>
+{% endif %}

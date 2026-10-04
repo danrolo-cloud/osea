@@ -1,9 +1,10 @@
-{% load static %}<!doctype html>
-<html lang="en-CA" class="no-js">
+{% load static i18n %}<!doctype html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}OSEA{% endblock %} · Ontario School Esports Association</title>
+  <title>{% block title %}OSEA{% endblock %} · {% translate "Ontario School Esports Association" %}</title>
   <link rel="preload" href="{% static 'fonts/roboto-latin-400-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="{% static 'fonts/montserrat-latin-800-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
@@ -14,46 +15,57 @@
   <script src="{% static 'js/site.js' %}" defer></script>
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <a class="skip-link" href="#main">Skip to main content</a>
+  <a class="skip-link" href="#main">{% translate "Skip to main content" %}</a>
 
   {% if environment_label %}
-    <div class="env-banner" role="note">{{ environment_label }} site · fictional data only<span class="env-extra"> · emails are not sent</span></div>
+    <div class="env-banner" role="note">{% blocktranslate %}{{ environment_label }} site · fictional data only{% endblocktranslate %}<span class="env-extra"> · {% translate "emails are not sent" %}</span></div>
   {% endif %}
 
-  {% with url_name=request.resolver_match.url_name %}
   <header class="site-header">
     <div class="container">
       <a class="brand" href="{% url 'core:home' %}">
-        <img src="{% static 'img/osea-logo-white.webp' %}" width="480" height="113" alt="OSEA home">
+        <img src="{% static 'img/osea-logo-white.webp' %}" width="480" height="113" alt="{% translate 'OSEA home' %}">
       </a>
 
-      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav">Menu</button>
-      <nav id="main-nav" aria-label="Main">
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav">{% translate "Menu" %}</button>
+      <nav id="main-nav" aria-label="{% translate 'Main' %}">
         <ul class="nav-list">
           {% if user.is_authenticated %}
-            {% if user.is_osea_admin %}
-              <li><a href="{% url 'core:admin_dashboard' %}" {% if url_name == 'admin_dashboard' %}aria-current="page"{% endif %}>Dashboard</a></li>
-              <li><a href="{% url 'core:style_guide' %}" {% if url_name == 'style_guide' %}aria-current="page"{% endif %}>Style guide</a></li>
-            {% elif user.is_coach %}
-              <li><a href="{% url 'core:coach_dashboard' %}" {% if url_name == 'coach_dashboard' %}aria-current="page"{% endif %}>Dashboard</a></li>
-            {% endif %}
-            <li><a href="{% url 'accounts:password_change' %}" {% if url_name == 'password_change' %}aria-current="page"{% endif %}>Account</a></li>
-            <li class="nav-user" aria-label="Signed in as">{{ user.get_full_name }}</li>
+            <li><a href="{% url 'core:dashboard' %}" {% if nav_section == 'dashboard' %}aria-current="page"{% endif %}>{% translate "Dashboard" %}</a></li>
+            <li><a href="{% url 'accounts:profile' %}" {% if nav_section == 'account' %}aria-current="page"{% endif %}>{% translate "Account" %}</a></li>
+            <li class="nav-user"><span class="visually-hidden">{% translate "Signed in as" %} </span>{{ user.get_full_name }}</li>
             <li>
               <form method="post" action="{% url 'accounts:logout' %}">
                 {% csrf_token %}
-                <button type="submit">Sign out</button>
+                <button type="submit">{% translate "Sign out" %}</button>
               </form>
             </li>
           {% else %}
-            <li><a href="{% url 'core:home' %}" {% if url_name == 'home' %}aria-current="page"{% endif %}>Home</a></li>
-            <li><a href="{% url 'accounts:login' %}" {% if url_name == 'login' %}aria-current="page"{% endif %}>Coach &amp; admin sign in</a></li>
+            <li><a href="{% url 'core:home' %}" {% if nav_section == 'home' %}aria-current="page"{% endif %}>{% translate "Home" %}</a></li>
+            <li><a href="{% url 'accounts:sign_up' %}" {% if nav_section == 'sign_up' %}aria-current="page"{% endif %}>{% translate "Coach sign up" %}</a></li>
+            <li><a href="{% url 'accounts:login' %}" {% if nav_section == 'sign_in' %}aria-current="page"{% endif %}>{% translate "Sign in" %}</a></li>
           {% endif %}
-          </ul>
+        </ul>
       </nav>
     </div>
   </header>
-  {% endwith %}
+
+  {% if user.is_authenticated and user.is_osea_admin %}
+    <nav class="subnav" aria-label="{% translate 'Administration' %}">
+      <div class="container">
+        <ul>
+          <li><a href="{% url 'schools:access_requests' %}" {% if nav_section == 'access' %}aria-current="page"{% endif %}>{% translate "Coach requests" %}</a></li>
+          <li><a href="{% url 'schools:school_list' %}" {% if nav_section == 'schools' %}aria-current="page"{% endif %}>{% translate "Schools" %}</a></li>
+          <li><a href="{% url 'schools:coach_list' %}" {% if nav_section == 'coaches' %}aria-current="page"{% endif %}>{% translate "Coaches" %}</a></li>
+          <li><a href="{% url 'schools:board_list' %}" {% if nav_section == 'boards' %}aria-current="page"{% endif %}>{% translate "School boards" %}</a></li>
+          <li><a href="{% url 'schools:year_list' %}" {% if nav_section == 'years' %}aria-current="page"{% endif %}>{% translate "School years" %}</a></li>
+          <li><a href="{% url 'audit:activity_log' %}" {% if nav_section == 'activity' %}aria-current="page"{% endif %}>{% translate "Activity log" %}</a></li>
+          <li><a href="{% url 'schools:exports' %}" {% if nav_section == 'exports' %}aria-current="page"{% endif %}>{% translate "Exports" %}</a></li>
+          <li><a href="{% url 'core:style_guide' %}" {% if nav_section == 'style' %}aria-current="page"{% endif %}>{% translate "Style guide" %}</a></li>
+        </ul>
+      </div>
+    </nav>
+  {% endif %}
 
   <main id="main" tabindex="-1">
     {% block hero %}{% endblock %}
@@ -71,7 +83,7 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>Ontario School Esports Association · A non-profit for Ontario school esports.</p>
+      <p>{% translate "Ontario School Esports Association · A non-profit for Ontario school esports." %}</p>
     </div>
   </footer>
 </body>

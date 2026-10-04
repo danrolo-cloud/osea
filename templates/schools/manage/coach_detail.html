@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{{ coach.get_full_name }}{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'schools:coach_list' %}">← {% translate "All coaches" %}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{% translate "Coach" %}</p>
+    <h1>{{ coach.get_full_name }}</h1>
+    <p class="lede">{{ coach.email }}</p>
+  </div>
+  {% if coach.is_active %}<span class="badge badge-success">{% translate "Account on" %}</span>{% else %}<span class="badge badge-danger">{% translate "Account turned off" %}</span>{% endif %}
+</div>
+
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="h-account">
+    <h2 id="h-account">{% translate "Account" %}</h2>
+    <dl class="details">
+      <dt>{% translate "Email confirmed" %}</dt><dd>{% if coach.email_verified_at %}{{ coach.email_verified_at|date:"M j, Y" }}{% else %}<span class="badge badge-warning">{% translate "Not yet" %}</span>{% endif %}</dd>
+      <dt>{% translate "Joined" %}</dt><dd>{{ coach.date_joined|date:"M j, Y" }}</dd>
+      <dt>{% translate "Last sign-in" %}</dt><dd>{{ coach.last_login|date:"M j, Y, g:i a"|default:"—" }}</dd>
+    </dl>
+    <form method="post" action="{% url 'schools:coach_set_active' coach.pk %}" class="mt">
+      {% csrf_token %}
+      {% if coach.is_active %}
+        <input type="hidden" name="active" value="0">
+        <button class="btn btn-secondary" type="submit">{% translate "Turn off account" %}</button>
+        <p class="help-text">{% translate "They won't be able to sign in. Their history is kept." %}</p>
+      {% else %}
+        <input type="hidden" name="active" value="1">
+        <button class="btn btn-primary" type="submit">{% translate "Turn account back on" %}</button>
+      {% endif %}
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="h-schools">
+    <h2 id="h-schools">{% translate "Schools" %}</h2>
+    {% for access in access_list %}
+      <div class="mb">
+        <div><strong>{% if access.school %}<a href="{% url 'schools:school_detail' access.school.pk %}">{{ access.school }}</a>{% else %}{{ access.school_label }}{% endif %}</strong> {% status_badge access.status access.get_status_display %}</div>
+        <div class="muted small">{{ access.position }} · {% translate "requested" %} {{ access.requested_at|date:"M j, Y" }}</div>
+        {% if access.status == 'pending' %}
+          <a href="{% url 'schools:access_request' access.pk %}">{% translate "Review request" %}</a>
+        {% elif access.status == 'approved' %}
+          <details class="mt">
+            <summary>{% translate "Remove access" %}</summary>
+            <form method="post" action="{% url 'schools:access_revoke' access.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <div class="form-field">
+                <label for="note-{{ access.pk }}">{% translate "Reason (sent to the coach)" %} <span class="required" aria-hidden="true">*</span></label>
+                <textarea id="note-{{ access.pk }}" name="decision_note" rows="2" required></textarea>
+              </div>
+              <button class="btn btn-danger" type="submit">{% translate "Remove access" %}</button>
+            </form>
+          </details>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="muted">{% translate "No school requests." %}</p>
+    {% endfor %}
+  </section>
+</div>
+
+<section class="card mt" aria-labelledby="h-history">
+  <h2 id="h-history">{% translate "History" %}</h2>
+  {% include "partials/history.html" with events=history %}
+</section>
+{% endblock %}

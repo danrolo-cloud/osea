@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ coach.first_name }},
+
+OSEA has approved you as a coach at {{ access.school.name }}.
+{% if access.decision_note %}
+Message from OSEA:
+{{ access.decision_note }}
+{% endif %}
+Sign in to see your school: {{ link }}
+
+Ontario School Esports Association
+{% endautoescape %}

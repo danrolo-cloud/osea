@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "School boards" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "School boards" %}</h1>
+    <p class="lede">{% translate "Staff email domains help flag coach requests that need a closer look." %}</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'schools:board_create' %}">{% translate "Add a board" %}</a>
+</div>
+{% if boards %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th scope="col">{% translate "Board" %}</th><th scope="col">{% translate "Staff email domains" %}</th><th scope="col" class="num">{% translate "Schools" %}</th><th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th></tr></thead>
+    <tbody>
+      {% for board in boards %}
+      <tr>
+        <th scope="row">{{ board.name }}{% if not board.is_active %} <span class="badge badge-neutral">{% translate "Inactive" %}</span>{% endif %}</th>
+        <td>{% for d in board.domain_list %}<code>{{ d }}</code> {% empty %}<span class="muted">{% translate "None set" %}</span>{% endfor %}</td>
+        <td class="num">{{ board.school_count }}</td>
+        <td class="table-actions"><a href="{% url 'schools:board_edit' board.pk %}">{% translate "Edit" %}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty-state"><h2>{% translate "No school boards yet" %}</h2><p>{% translate "Add the boards your schools belong to." %}</p></div>
+{% endif %}
+{% endblock %}

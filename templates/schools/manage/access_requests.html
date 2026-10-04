@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{% translate "Coach requests" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Coach requests" %}</h1>
+    <p class="lede">{% translate "Teachers asking to coach for a school. Nobody sees a school's data until you approve them." %}</p>
+  </div>
+</div>
+
+<nav class="btn-row mb" aria-label="{% translate 'Filter requests' %}">
+  <a class="btn {% if show == 'pending' %}btn-primary{% else %}btn-secondary{% endif %}" href="?show=pending" {% if show == 'pending' %}aria-current="page"{% endif %}>{% translate "Waiting for review" %}</a>
+  <a class="btn {% if show == 'decided' %}btn-primary{% else %}btn-secondary{% endif %}" href="?show=decided" {% if show == 'decided' %}aria-current="page"{% endif %}>{% translate "Recently decided" %}</a>
+</nav>
+
+{% if requests %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Coach" %}</th>
+        <th scope="col">{% translate "School" %}</th>
+        <th scope="col" class="hide-sm">{% if show == 'pending' %}{% translate "Requested" %}{% else %}{% translate "Decided" %}{% endif %}</th>
+        <th scope="col">{% translate "Status" %}</th>
+        <th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for access in requests %}
+      <tr>
+        <th scope="row">
+          {{ access.coach.get_full_name }}<br><span class="muted small">{{ access.coach.email }}</span>
+        </th>
+        <td>
+          {{ access.school_label }}<br><span class="muted small">{{ access.position }}</span>
+          {% if show == 'pending' %}
+            {% with flags=access.review_flags %}{% if flags %}
+              <ul class="flag-list">{% for flag in flags %}<li>{{ flag }}</li>{% endfor %}</ul>
+            {% endif %}{% endwith %}
+          {% endif %}
+        </td>
+        <td class="nowrap hide-sm">{% if show == 'pending' %}{{ access.requested_at|date:"M j, Y" }}{% else %}{{ access.decided_at|date:"M j, Y" }}{% endif %}</td>
+        <td>{% status_badge access.status access.get_status_display %}</td>
+        <td class="table-actions"><a class="btn btn-secondary" href="{% url 'schools:access_request' access.pk %}">{% if show == 'pending' %}{% translate "Review" %}{% else %}{% translate "View" %}{% endif %}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty-state">
+  {% if show == 'pending' %}
+    <h2>{% translate "All caught up" %}</h2>
+    <p>{% translate "No coach requests are waiting for review." %}</p>
+  {% else %}
+    <h2>{% translate "No decisions yet" %}</h2>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

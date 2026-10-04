@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if board %}{% translate "Edit school board" %}{% else %}{% translate "Add a school board" %}{% endif %}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'schools:board_list' %}">← {% translate "All school boards" %}</a>
+<div class="card card-medium">
+  <h1>{% if board %}{{ board.name }}{% else %}{% translate "Add a school board" %}{% endif %}</h1>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.name %}
+    {% include "partials/field.html" with field=form.email_domains %}
+    {% include "partials/field.html" with field=form.is_active %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save" %}</button></div>
+  </form>
+</div>
+{% endblock %}

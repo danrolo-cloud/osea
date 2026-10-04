@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Exports" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Exports" %}</h1>
+    <p class="lede">{% translate "Download spreadsheets (CSV files that open in Excel or Google Sheets)." %}</p>
+  </div>
+</div>
+<div class="alert alert-info"><p>{% translate "Exports can contain personal information such as coach email addresses. Store them in OSEA's shared drive, not on personal devices, and delete copies you no longer need. Each download is recorded in the activity log." %}</p></div>
+<div class="grid grid-3">
+  <section class="card">
+    <h2>{% translate "Schools" %}</h2>
+    <p>{% if year %}{% blocktranslate %}Directory with {{ year }} membership status and coach counts.{% endblocktranslate %}{% else %}{% translate "Directory with coach counts." %}{% endif %}</p>
+    <a class="btn btn-secondary" href="{% url 'schools:export_csv' 'schools' %}">{% translate "Download schools" %}</a>
+  </section>
+  <section class="card">
+    <h2>{% translate "Coaches" %}</h2>
+    <p>{% translate "Every coach, their contact email and their access to each school." %}</p>
+    <a class="btn btn-secondary" href="{% url 'schools:export_csv' 'coaches' %}">{% translate "Download coaches" %}</a>
+  </section>
+  <section class="card">
+    <h2>{% translate "Memberships" %}</h2>
+    <p>{% translate "Every membership record and payment detail, all years." %}</p>
+    <a class="btn btn-secondary" href="{% url 'schools:export_csv' 'memberships' %}">{% translate "Download memberships" %}</a>
+  </section>
+</div>
+{% endblock %}

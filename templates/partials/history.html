@@ -1,0 +1,20 @@
+{% load i18n osea %}{# Activity log entries. Usage: {% include "partials/history.html" with events=history %} #}
+{% if events %}
+<ul class="history">
+  {% for event in events %}
+    <li>
+      <div><strong>{{ event.summary }}</strong></div>
+      <div class="when">{{ event.created_at|date:"M j, Y, g:i a" }} · {{ event.actor.get_full_name|default:event.actor_label }}</div>
+      {% if event.changes %}
+        <ul class="changes">
+          {% for field, values in event.changes.items %}
+            <li>{{ field|field_label }}: {% if values.0 != "" %}<del>{{ values.0 }}</del> → {% endif %}<ins>{{ values.1|default:"(blank)" }}</ins></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="muted">{% translate "No recorded changes yet." %}</p>
+{% endif %}

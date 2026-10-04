@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% if school %}{% translate "Edit school" %}{% else %}{% translate "Add a school" %}{% endif %}{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% if school %}{% url 'schools:school_detail' school.pk %}{% else %}{% url 'schools:school_list' %}{% endif %}">← {% translate "Back" %}</a>
+<div class="card card-medium">
+  <h1>{% if school %}{% translate "Edit school" %}{% else %}{% translate "Add a school" %}{% endif %}</h1>
+  {% include "partials/form_errors.html" %}
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "partials/field.html" with field=form.name %}
+    <div class="grid grid-2">
+      {% include "partials/field.html" with field=form.city %}
+      {% include "partials/field.html" with field=form.level %}
+    </div>
+    {% include "partials/field.html" with field=form.board %}
+    <p class="help-text">{% translate "Board not listed?" %} <a href="{% url 'schools:board_create' %}">{% translate "Add a school board" %}</a></p>
+    {% include "partials/field.html" with field=form.is_active %}
+    {% include "partials/field.html" with field=form.admin_notes %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save school" %}</button></div>
+  </form>
+</div>
+{% endblock %}

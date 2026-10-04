@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ coach.first_name }},
+
+OSEA was not able to approve your request to coach at {{ access.school_label }}.
+
+Message from OSEA:
+{{ access.decision_note }}
+
+If you think this is a mistake, reply to this email or contact OSEA.
+
+Ontario School Esports Association
+{% endautoescape %}

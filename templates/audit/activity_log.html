@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Activity log" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Activity log" %}</h1>
+    <p class="lede">{% translate "A permanent record of important changes: who made them and when. Entries can't be edited or deleted." %}</p>
+  </div>
+</div>
+
+<form class="filters" method="get" role="search">
+  <div class="form-field grow">
+    <label for="q">{% translate "Search" %}</label>
+    <input id="q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Person, school or description' %}">
+  </div>
+  <div class="form-field">
+    <label for="area">{% translate "Area" %}</label>
+    <select id="area" name="area">
+      <option value="">{% translate "Everything" %}</option>
+      {% for value, label in areas %}<option value="{{ value }}" {% if area == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-secondary" type="submit">{% translate "Filter" %}</button>
+</form>
+
+<section class="card">
+  {% include "partials/history.html" with events=page.object_list %}
+</section>
+{% include "partials/pagination.html" %}
+{% endblock %}

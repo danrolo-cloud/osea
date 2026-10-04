@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{% translate "Review coach request" %}{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'schools:access_requests' %}">← {% translate "All coach requests" %}</a>
+<div class="page-header">
+  <div>
+    <h1>{{ access.coach.get_full_name }}</h1>
+    <p class="lede">{% blocktranslate with school=access.school_label %}Asking to coach at {{ school }}{% endblocktranslate %}</p>
+  </div>
+  {% status_badge access.status access.get_status_display %}
+</div>
+
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="h-request">
+    <h2 id="h-request">{% translate "Request" %}</h2>
+    <dl class="details">
+      <dt>{% translate "Email" %}</dt>
+      <dd>{{ access.coach.email }} {% if access.coach.email_verified_at %}<span class="badge badge-success">{% translate "Confirmed" %}</span>{% else %}<span class="badge badge-warning">{% translate "Not confirmed" %}</span>{% endif %}</dd>
+      <dt>{% translate "Role at school" %}</dt><dd>{{ access.position }}</dd>
+      <dt>{% translate "School" %}</dt>
+      <dd>{% if access.school %}<a href="{% url 'schools:school_detail' access.school.pk %}">{{ access.school }}</a>{% if access.school.board %}<br><span class="muted small">{{ access.school.board }}</span>{% endif %}{% else %}{{ access.requested_school_name }} <span class="badge badge-warning">{% translate "Not in directory" %}</span>{% endif %}</dd>
+      <dt>{% translate "Requested" %}</dt><dd>{{ access.requested_at|date:"M j, Y, g:i a" }}</dd>
+      {% if access.decided_at %}
+        <dt>{% translate "Decided" %}</dt><dd>{{ access.decided_at|date:"M j, Y, g:i a" }} · {{ access.decided_by.get_full_name }}</dd>
+        {% if access.decision_note %}<dt>{% translate "Message" %}</dt><dd>{{ access.decision_note|linebreaksbr }}</dd>{% endif %}
+      {% endif %}
+    </dl>
+    {% if access.status == 'pending' %}
+      {% with flags=access.review_flags %}
+        {% if flags %}
+          <div class="alert alert-warning mt" role="note">
+            <p><strong>{% translate "Check before approving:" %}</strong></p>
+            <ul>{% for flag in flags %}<li>{{ flag }}</li>{% endfor %}</ul>
+          </div>
+        {% endif %}
+      {% endwith %}
+    {% endif %}
+    <h3 class="mt">{% translate "Other approved coaches at this school" %}</h3>
+    {% if other_coaches %}
+      <ul>{% for other in other_coaches %}<li>{{ other.coach.get_full_name }} ({{ other.coach.email }})</li>{% endfor %}</ul>
+    {% else %}
+      <p class="muted">{% translate "None." %}</p>
+    {% endif %}
+  </section>
+
+  {% if access.status == 'pending' %}
+  <section class="card" aria-labelledby="h-decide">
+    <h2 id="h-decide">{% translate "Decision" %}</h2>
+    {% include "partials/form_errors.html" %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if not access.school %}{% include "partials/field.html" with field=form.school %}
+        <p class="help-text"><a href="{% url 'schools:school_create' %}">{% translate "Add the school to the directory" %}</a> {% translate "first if it isn't listed." %}</p>
+      {% endif %}
+      {% include "partials/field.html" with field=form.decision_note %}
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit" name="action" value="approve" {% if access.school and not access.can_be_approved %}disabled{% endif %}>{% translate "Approve" %}</button>
+        <button class="btn btn-danger" type="submit" name="action" value="decline">{% translate "Decline" %}</button>
+      </div>
+      <p class="help-text">{% translate "The coach is emailed either way." %}</p>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

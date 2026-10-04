@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{{ school.name }}{% endblock %}
+
+{% block content %}
+<a class="back-link" href="{% url 'schools:school_list' %}">← {% translate "All schools" %}</a>
+<div class="page-header">
+  <div>
+    <p class="eyebrow">{{ school.get_level_display }}</p>
+    <h1>{{ school.name }}</h1>
+    <p class="lede">{{ school.city }} · {{ school.board.name|default:_("Independent school") }}</p>
+  </div>
+  <div class="btn-row">
+    {% if not school.is_active %}<span class="badge badge-neutral">{% translate "Inactive" %}</span>{% endif %}
+    <a class="btn btn-secondary" href="{% url 'schools:school_edit' school.pk %}">{% translate "Edit school" %}</a>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <section class="card" aria-labelledby="h-membership">
+    <div class="card-header">
+      <h2 id="h-membership">{% translate "Membership" %}</h2>
+      {% if year %}<a class="btn btn-primary" href="{% url 'schools:membership_edit' school.pk year.pk %}">{% if current_membership %}{% translate "Update" %}{% else %}{% translate "Record" %}{% endif %} {{ year }}</a>{% endif %}
+    </div>
+    {% if not year %}
+      <div class="alert alert-warning"><p>{% translate "No current school year is set." %} <a href="{% url 'schools:year_list' %}">{% translate "Set one" %}</a></p></div>
+    {% endif %}
+    {% if memberships %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">{% translate "Year" %}</th><th scope="col">{% translate "Status" %}</th><th scope="col">{% translate "Paid" %}</th><th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th></tr></thead>
+          <tbody>
+            {% for m in memberships %}
+            <tr>
+              <th scope="row">{{ m.school_year }}</th>
+              <td>{% status_badge m.status m.get_status_display %}</td>
+              <td>{% if m.paid_on %}{{ m.paid_on|date:"M j, Y" }}{% if m.amount %} · ${{ m.amount }}{% endif %}{% else %}—{% endif %}</td>
+              <td class="table-actions"><a href="{% url 'schools:membership_edit' school.pk m.school_year.pk %}">{% translate "Edit" %}</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="muted">{% translate "No membership recorded yet." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="h-coaches">
+    <h2 id="h-coaches">{% translate "Coaches" %}</h2>
+    {% for access in access_list %}
+      <div class="mb">
+        <a href="{% url 'schools:coach_detail' access.coach.pk %}">{{ access.coach.get_full_name }}</a> {% status_badge access.status access.get_status_display %}
+        <div class="muted small">{{ access.coach.email }} · {{ access.position }}</div>
+      </div>
+    {% empty %}
+      <p class="muted">{% translate "No coaches have asked for access to this school yet." %}</p>
+    {% endfor %}
+  </section>
+</div>
+
+{% if school.admin_notes %}
+<section class="card mt" aria-labelledby="h-notes">
+  <h2 id="h-notes">{% translate "OSEA notes" %}</h2>
+  <p>{{ school.admin_notes|linebreaksbr }}</p>
+</section>
+{% endif %}
+
+<section class="card mt" aria-labelledby="h-history">
+  <h2 id="h-history">{% translate "History" %}</h2>
+  {% include "partials/history.html" with events=history %}
+</section>
+{% endblock %}

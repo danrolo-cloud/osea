@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load static %}
-{% block title %}Sign in{% endblock %}
+{% load static i18n %}
+{% block title %}{% translate "Sign in" %}{% endblock %}
 
 {% block content %}
 <div class="card card-narrow">
   <img class="card-logo" src="{% static 'img/osea-logo-colour.webp' %}" width="640" height="457" alt="OSEA | AOSES">
-  <h1>Sign in</h1>
-  <p class="help-text">For teacher coaches and OSEA administrators.</p>
+  <h1>{% translate "Sign in" %}</h1>
+  <p class="help-text">{% translate "For teacher coaches and OSEA administrators." %}</p>
   {% include "partials/form_errors.html" %}
   <form method="post" novalidate>
     {% csrf_token %}
@@ -14,9 +14,10 @@
     {% include "partials/field.html" with field=form.username %}
     {% include "partials/field.html" with field=form.password %}
     <div class="btn-row">
-      <button class="btn btn-primary" type="submit">Sign in</button>
-      <a href="{% url 'accounts:password_reset' %}">Forgot your password?</a>
+      <button class="btn btn-primary" type="submit">{% translate "Sign in" %}</button>
+      <a href="{% url 'accounts:password_reset' %}">{% translate "Forgot your password?" %}</a>
     </div>
   </form>
+  <p class="mt">{% translate "New coach?" %} <a href="{% url 'accounts:sign_up' %}">{% translate "Create an account" %}</a></p>
 </div>
 {% endblock %}

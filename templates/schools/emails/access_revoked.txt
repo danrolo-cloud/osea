@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ coach.first_name }},
+
+Your coach access to {{ access.school.name }} on the OSEA platform has been removed.
+
+Message from OSEA:
+{{ access.decision_note }}
+
+If you think this is a mistake, contact OSEA.
+
+Ontario School Esports Association
+{% endautoescape %}

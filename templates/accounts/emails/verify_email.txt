@@ -1,0 +1,12 @@
+{% autoescape off %}Hello {{ user.first_name }},
+
+Please confirm that this is your email address for your OSEA coach account:
+
+{{ link }}
+
+The link works for three days. OSEA can only approve your school access after you confirm.
+
+If you didn't create an OSEA account, you can ignore this email.
+
+Ontario School Esports Association
+{% endautoescape %}

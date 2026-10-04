@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Not allowed{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Not allowed" %}{% endblock %}
 {% block content %}
 <div class="card card-narrow">
-  <p class="eyebrow">Error 403</p>
-  <h1>You don't have access to this page</h1>
-  <p>Your account isn't allowed to view this. If you think it should be, contact OSEA.</p>
-  <a class="btn btn-primary" href="{% url 'core:dashboard' %}">Go to my dashboard</a>
+  <p class="eyebrow">{% translate "Error 403" %}</p>
+  <h1>{% translate "You don't have access to this page" %}</h1>
+  <p>{% translate "Your account isn't allowed to view this. If you think it should be, contact OSEA." %}</p>
+  <a class="btn btn-primary" href="{% url 'core:dashboard' %}">{% translate "Go to my dashboard" %}</a>
 </div>
 {% endblock %}

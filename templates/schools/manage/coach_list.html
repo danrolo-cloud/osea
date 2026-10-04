@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load i18n osea %}
+{% block title %}{% translate "Coaches" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Coaches" %}</h1>
+    <p class="lede">{% translate "Every teacher coach account and the schools they're linked to." %}</p>
+  </div>
+</div>
+
+<form class="filters" method="get" role="search">
+  <div class="form-field grow">
+    <label for="q">{% translate "Search" %}</label>
+    <input id="q" type="search" name="q" value="{{ q }}" placeholder="{% translate 'Name, email or school' %}">
+  </div>
+  <button class="btn btn-secondary" type="submit">{% translate "Search" %}</button>
+  {% if q %}<a href="{% url 'schools:coach_list' %}">{% translate "Clear" %}</a>{% endif %}
+</form>
+
+{% if page.object_list %}
+<p class="result-count">{% blocktranslate count n=page.paginator.count %}{{ n }} coach{% plural %}{{ n }} coaches{% endblocktranslate %}</p>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Coach" %}</th>
+        <th scope="col">{% translate "Schools" %}</th>
+        <th scope="col">{% translate "Account" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for coach in page %}
+      <tr>
+        <th scope="row"><a href="{% url 'schools:coach_detail' coach.pk %}">{{ coach.get_full_name }}</a><br><span class="muted small">{{ coach.email }}</span></th>
+        <td>
+          {% for access in coach.school_access.all %}
+            <div>{{ access.school_label }} {% status_badge access.status access.get_status_display %}</div>
+          {% empty %}<span class="muted">{% translate "None" %}</span>{% endfor %}
+        </td>
+        <td>
+          {% if not coach.is_active %}<span class="badge badge-danger">{% translate "Turned off" %}</span>
+          {% elif not coach.email_verified_at %}<span class="badge badge-warning">{% translate "Email not confirmed" %}</span>
+          {% else %}<span class="badge badge-success">{% translate "Active" %}</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "partials/pagination.html" %}
+{% else %}
+<div class="card empty-state">
+  <h2>{% if q %}{% translate "No coaches match your search" %}{% else %}{% translate "No coaches yet" %}{% endif %}</h2>
+  <p>{% translate "Coaches appear here when they sign up." %}</p>
+</div>
+{% endif %}
+{% endblock %}
