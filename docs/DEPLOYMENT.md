@@ -52,8 +52,15 @@ two-step sign-in for each, and record who has access in OSEA's records.
    (A separate *test* copy should set `OSEA_ENVIRONMENT_LABEL=Test` so nobody mistakes it for the real one.)
 4. **Before each release** the app runs `python manage.py migrate` and `createcachetable`
    automatically (the "prepare-database" job), which updates the database structure.
-5. **Domain.** In OSEA's DNS settings, add the record DigitalOcean shows (a CNAME for e.g. `app`).
-   DigitalOcean then provides the HTTPS certificate automatically.
+5. **Domain.** The platform gets its own sub-address (e.g. `esports.osea.ca`); OSEA's main Wix website
+   stays exactly as it is. In DigitalOcean, add the domain to the app; it shows one CNAME record. Add that
+   record where OSEA's domain is managed. If that is Wix: *Wix dashboard → Settings → Domains → the domain →
+   Manage DNS records → CNAME → Add record*, host name `esports`, value as DigitalOcean shows.
+   Only **add** a record: don't change the nameservers or the existing records, which keep the Wix site and
+   Google Workspace email working. DigitalOcean then provides the HTTPS certificate automatically
+   (it can take up to a day). Finally, add a "Competitions & coach sign-in" link on the Wix site pointing to
+   the new address. (Link to it rather than embedding it in a Wix page: the platform refuses to be shown
+   inside other sites, which protects sign-in.)
 6. **Email (Google Workspace).** A Workspace administrator for OSEA:
    1. Creates a user just for the platform, e.g. `platform@osea.ca`. Free under Workspace for Nonprofits.
       Give it a long password stored in OSEA's password manager, and turn on 2-Step Verification for it.
