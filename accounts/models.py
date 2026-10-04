@@ -101,3 +101,31 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_coach(self):
         return self.is_active and self.role == self.Role.COACH
+
+
+class TwoFactor(models.Model):
+    """
+    Two-step sign-in with an authenticator app (Google Authenticator, Microsoft
+    Authenticator, 1Password...). After the password, the person types the
+    6-digit code the app shows. Required for OSEA administrators.
+    """
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="two_factor")
+    secret = models.CharField(max_length=64)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    last_used_step = models.BigIntegerField(null=True, blank=True, help_text="Stops the same code being used twice.")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Two-step sign-in for {self.user.email}"
+
+
+class BackupCode(models.Model):
+    """One-time codes for signing in when the authenticator app isn't available. Stored only as hashes."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="backup_codes")
+    code_hash = models.CharField(max_length=128)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Backup code for {self.user.email}"

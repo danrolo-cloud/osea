@@ -5,3 +5,5 @@ psycopg[binary]>=3.2,<4     # PostgreSQL database driver
 dj-database-url>=3.0,<4     # reads the database address from one setting
 whitenoise>=6.9,<7          # serves CSS, fonts and scripts
 gunicorn>=23,<27            # production web server
+pyotp>=2.9,<3               # two-step sign-in codes (authenticator apps)
+qrcode>=8,<9                # QR code for setting up an authenticator app

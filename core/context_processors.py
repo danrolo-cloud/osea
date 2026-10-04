@@ -55,6 +55,7 @@ _SECTIONS = {
     "match_create": "manage_competitions",
     "match_edit": "manage_competitions",
     "results_queue": "results",
+    "admin_list": "admins",
     "my_matches": "matches",
     "coach_match": "matches",
 }

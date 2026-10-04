@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Your backup codes" %}{% endblock %}
+{% block content %}
+<div class="card card-medium">
+  <h1>{% translate "Save your backup codes" %}</h1>
+  <div class="alert alert-warning"><p>{% translate "Each code works once, for when your phone isn't with you. This is the only time they're shown: print them or store them in a password manager now." %}</p></div>
+  <ul class="backup-codes">{% for code in codes %}<li><code>{{ code }}</code></li>{% endfor %}</ul>
+  <div class="btn-row mt">
+    <button class="btn btn-secondary" type="button" data-print>{% translate "Print" %}</button>
+    <a class="btn btn-primary" href="{% url 'core:dashboard' %}">{% translate "I've saved them" %}</a>
+  </div>
+</div>
+{% endblock %}

@@ -27,5 +27,6 @@ urlpatterns = [
     path("manage/school-years/new/", manage_views.year_form, name="year_create"),
     path("manage/school-years/<int:pk>/", manage_views.year_form, name="year_edit"),
     path("manage/exports/", manage_views.exports, name="exports"),
+    path("manage/exports/everything.zip", manage_views.export_everything, name="export_everything"),
     path("manage/exports/<slug:kind>.csv", manage_views.export_csv, name="export_csv"),
 ]

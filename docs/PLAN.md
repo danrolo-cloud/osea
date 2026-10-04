@@ -1,6 +1,6 @@
 # OSEA platform: plan and decisions
 
-Last updated: 2026-10-04 (Phase 4 complete)
+Last updated: 2026-10-04 (Phase 5 in progress)
 
 ## Goal
 
@@ -104,7 +104,7 @@ automatic round-robin generation, result screenshot uploads, notification emails
 | 2. Competitions & registration | Admin-managed games and competitions (own dates and rules), divisions, team registration with rosters, review queue, division assignment | ✅ Oct 4 |
 | 3. Schedules & announcements | Stages with admin-chosen formats, generated matches and brackets, coach-to-coach scheduling, cancellations and byes, public schedules, announcements | ✅ Oct 4 |
 | 4. Results & standings | Submit, confirm or dispute, admin finalize, forfeits, bracket advancement, Swiss pairing, standings with tiebreakers, public standings | ✅ Oct 4 |
-| 5. Pilot readiness | Hosting set up (with approval), admin two-factor sign-in, backup guide, pilot with a few coaches | before Dec 18 |
+| 5. Pilot readiness | Done: two-step sign-in, sign-in limits, admin accounts, full export, security headers, accessibility check, deployment and operations guides. Waiting on OSEA: hosting account, email service, domain; then a pilot with a few coaches | before Dec 18 |
 | Launch | Real coaches onboarded; Valorant registration opens | January 2027 |
 
 Targets assume regular review checkpoints with OSEA. The December pilot must finish before the winter break.
@@ -169,3 +169,17 @@ Targets assume regular review checkpoints with OSEA. The December pilot must fin
 The first complete workflow now works end to end: an administrator creates a competition, a coach registers a
 team and roster, the administrator approves it and places it in a division, publishes the matches, coaches agree
 times and report results, results are confirmed or reviewed, and standings update.
+
+## Phase 5 notes
+
+- Two-step sign-in uses the standard authenticator-app codes (TOTP); each code works once. Ten one-time
+  backup codes are shown once and stored only as hashes. Required for administrators on the live site,
+  including the back office, which now uses the main sign-in page.
+- Attempt limits: 5 wrong passwords per account or 20 per network address in 15 minutes pauses sign-in for
+  15 minutes; 5 wrong codes likewise; password reset emails at most 3 per address per hour (the page never
+  reveals whether an account exists); 5 sign-ups per network address per hour.
+- The full export holds personal information; it is administrator-only and every download is logged.
+- Accessibility: axe (WCAG 2.1 A/AA and best practices) on 30+ page views at desktop and phone sizes: no
+  issues. Keyboard: skip link first, visible focus, sign-in works with the keyboard alone.
+- Still to do once OSEA approves: create the hosting, email and DNS settings (docs/DEPLOYMENT.md), a test
+  copy of the site for the pilot, and a short privacy notice for coaches and schools (OSEA to approve the wording).

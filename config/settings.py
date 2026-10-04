@@ -68,6 +68,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "core.middleware.SecurityHeaders",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -75,9 +76,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "accounts.middleware.RequireAdminTwoFactor",
 ]
 
 ROOT_URLCONF = "config.urls"
+TEST_RUNNER = "config.test_runner.TestRunner"
 
 TEMPLATES = [
     {
@@ -106,6 +109,22 @@ DATABASES = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# A small cache kept in the database, used for sign-in attempt limits.
+# Create its table once with: python manage.py createcachetable
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "osea_cache",
+    }
+}
+
+# Administrators must use two-step sign-in. On by default on the live site;
+# set OSEA_REQUIRE_ADMIN_2FA=false only for local development and demos.
+OSEA_REQUIRE_ADMIN_2FA = env_bool("OSEA_REQUIRE_ADMIN_2FA", not DEBUG)
+
+# Behind a hosting proxy, the header holding the visitor's real address (e.g. HTTP_DO_CONNECTING_IP).
+OSEA_CLIENT_IP_HEADER = os.environ.get("OSEA_CLIENT_IP_HEADER", "")
 
 # Accounts: people sign in with their email address.
 AUTH_USER_MODEL = "accounts.User"

@@ -1,0 +1,63 @@
+# DigitalOcean App Platform specification (a TEMPLATE: nothing is deployed until OSEA approves).
+# Every value in <ANGLE BRACKETS> must be filled in. Secrets are entered in the DigitalOcean
+# dashboard as "encrypted" variables, never in this file. See docs/DEPLOYMENT.md.
+name: osea-platform
+region: tor            # Toronto: keeps data in Canada
+
+databases:
+  - name: osea-db
+    engine: PG
+    version: "16"
+    production: true   # managed database with daily backups
+    cluster_name: <OSEA-DATABASE-CLUSTER-NAME>
+
+jobs:
+  - name: prepare-database
+    kind: PRE_DEPLOY   # runs before each new version goes live
+    github: &source
+      repo: danrolo-cloud/osea
+      branch: main
+      deploy_on_push: false   # OSEA chooses when to release
+    environment_slug: python
+    run_command: python manage.py migrate --noinput && python manage.py createcachetable
+    envs: &envs
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${osea-db.DATABASE_URL}
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_SECRET_KEY
+        type: SECRET
+        value: <SET-IN-DASHBOARD>
+      - key: DJANGO_ALLOWED_HOSTS
+        value: <app.your-domain.ca>
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://<app.your-domain.ca>
+      - key: OSEA_CLIENT_IP_HEADER
+        value: HTTP_DO_CONNECTING_IP
+      - key: DJANGO_EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        value: <smtp host from the email service>
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_HOST_USER
+        type: SECRET
+        value: <SET-IN-DASHBOARD>
+      - key: EMAIL_HOST_PASSWORD
+        type: SECRET
+        value: <SET-IN-DASHBOARD>
+      - key: DEFAULT_FROM_EMAIL
+        value: OSEA <no-reply@your-domain.ca>
+
+services:
+  - name: web
+    github: *source
+    environment_slug: python
+    instance_size_slug: apps-s-1vcpu-1gb
+    instance_count: 1
+    http_port: 8000
+    run_command: gunicorn config.wsgi --bind 0.0.0.0:8000 --workers 2 --access-logfile -
+    health_check:
+      http_path: /healthz
+    envs: *envs

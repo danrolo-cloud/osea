@@ -85,12 +85,12 @@ class BackOfficeTests(TestCase):
     def test_coach_cannot_open_back_office(self):
         self.client.force_login(make_user())
         response = self.client.get("/back-office/")
-        self.assertRedirects(response, "/back-office/login/?next=/back-office/")
+        self.assertRedirects(response, "/back-office/login/?next=/back-office/", fetch_redirect_response=False)
 
     def test_osea_admin_without_staff_flag_cannot_open_back_office(self):
         self.client.force_login(make_user(email="a@example.org", role=User.Role.ADMIN))
-        response = self.client.get("/back-office/")
-        self.assertEqual(response.status_code, 302)
+        response = self.client.get("/back-office/", follow=True)
+        self.assertEqual(response.status_code, 403)  # a clear "not allowed", not a redirect loop
 
 
 class SeedDemoCommandTests(TestCase):

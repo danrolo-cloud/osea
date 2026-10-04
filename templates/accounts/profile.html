@@ -1,6 +1,29 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% translate "Your account" %}{% endblock %}
+{% block title %}{% translate "Your account" %}<div class="card card-narrow mt">
+  <h2>{% translate "Two-step sign-in" %}</h2>
+  {% if two_factor_on %}
+    <p><span class="badge badge-success">{% translate "On" %}</span> {% translate "You enter a code from your authenticator app after your password." %}</p>
+    <p class="help-text">{% blocktranslate count n=backup_codes_left %}{{ n }} backup code left.{% plural %}{{ n }} backup codes left.{% endblocktranslate %}</p>
+    <form method="post" action="{% url 'accounts:backup_codes_renew' %}">{% csrf_token %}<button class="btn btn-secondary" type="submit">{% translate "Make new backup codes" %}</button></form>
+    {% if not two_factor_required %}
+      <details class="mt">
+        <summary>{% translate "Turn off two-step sign-in" %}</summary>
+        <form method="post" action="{% url 'accounts:two_factor_off' %}" class="mt" novalidate>
+          {% csrf_token %}
+          <div class="form-field"><label for="off-code">{% translate "Current code from your app" %}</label><input id="off-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="9"></div>
+          <button class="btn btn-danger" type="submit">{% translate "Turn off" %}</button>
+        </form>
+      </details>
+    {% else %}
+      <p class="help-text">{% translate "Required for OSEA administrators. If you lose your phone, use a backup code or ask another administrator to reset it." %}</p>
+    {% endif %}
+  {% else %}
+    <p>{% translate "Add a second step to signing in: a 6-digit code from an authenticator app on your phone." %}{% if two_factor_required %} <strong>{% translate "Required for OSEA administrators." %}</strong>{% endif %}</p>
+    <a class="btn btn-primary" href="{% url 'accounts:two_factor_setup' %}">{% translate "Turn on two-step sign-in" %}</a>
+  {% endif %}
+</div>
+{% endblock %}
 {% block content %}
 <div class="card card-narrow">
   <h1>{% translate "Your account" %}</h1>

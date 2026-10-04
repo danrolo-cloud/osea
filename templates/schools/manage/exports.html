@@ -10,6 +10,11 @@
   </div>
 </div>
 <div class="alert alert-info"><p>{% translate "Exports can contain personal information such as coach email addresses. Store them in OSEA's shared drive, not on personal devices, and delete copies you no longer need. Each download is recorded in the activity log." %}</p></div>
+<section class="card mb">
+  <h2>{% translate "Everything" %}</h2>
+  <p>{% translate "Every kind of record as spreadsheets in one zip file: schools, coaches, students and rosters, competitions, matches and results, announcements and the activity log. Use it for OSEA's monthly off-site copy (see the operations guide)." %}</p>
+  <a class="btn btn-primary" href="{% url 'schools:export_everything' %}">{% translate "Download everything (.zip)" %}</a>
+</section>
 <div class="grid grid-3">
   <section class="card">
     <h2>{% translate "Schools" %}</h2>

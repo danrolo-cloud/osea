@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Administrators" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{% translate "Administrators" %}</h1>
+    <p class="lede">{% translate "People who run OSEA competitions. Every administrator must use two-step sign-in." %}</p>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <section aria-labelledby="h-admins">
+    <h2 id="h-admins" class="visually-hidden">{% translate "Current administrators" %}</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">{% translate "Administrator" %}</th><th scope="col">{% translate "Two-step" %}</th><th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th></tr></thead>
+        <tbody>
+          {% for admin in admins %}
+          <tr>
+            <th scope="row">{{ admin.get_full_name }}{% if admin == user %} <span class="muted small">({% translate "you" %})</span>{% endif %}<br><span class="muted small">{{ admin.email }}</span>
+              {% if not admin.is_active %}<br><span class="badge badge-neutral">{% translate "Turned off" %}</span>{% elif not admin.has_usable_password %}<br><span class="badge badge-warning">{% translate "Hasn't set a password yet" %}</span>{% endif %}</th>
+            <td>{% if admin.has_two_step %}<span class="badge badge-success">{% translate "On" %}</span>{% else %}<span class="badge badge-warning">{% translate "Not set up" %}</span>{% endif %}</td>
+            <td class="table-actions">
+              {% if admin != user %}
+                <form method="post" action="{% url 'accounts:admin_set_active' admin.pk %}" class="mb">{% csrf_token %}
+                  <input type="hidden" name="active" value="{% if admin.is_active %}0{% else %}1{% endif %}">
+                  <button class="btn-link" type="submit">{% if admin.is_active %}{% translate "Turn off" %}{% else %}{% translate "Turn on" %}{% endif %}</button>
+                </form>
+                {% if admin.has_two_step %}
+                <details>
+                  <summary>{% translate "Reset two-step" %}</summary>
+                  <form method="post" action="{% url 'accounts:admin_reset_two_step' admin.pk %}">{% csrf_token %}
+                    <label class="visually-hidden" for="reason-{{ admin.pk }}">{% translate "Reason" %}</label>
+                    <input id="reason-{{ admin.pk }}" name="reason" type="text" placeholder="{% translate 'Reason, e.g. lost phone' %}">
+                    <button class="btn btn-secondary" type="submit">{% translate "Reset" %}</button>
+                  </form>
+                </details>
+                {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-add">
+    <h2 id="h-add">{% translate "Add an administrator" %}</h2>
+    {% include "partials/form_errors.html" %}
+    <form method="post" action="{% url 'accounts:admin_create' %}" novalidate>
+      {% csrf_token %}
+      <div class="grid grid-2">
+        {% include "partials/field.html" with field=form.first_name %}
+        {% include "partials/field.html" with field=form.last_name %}
+      </div>
+      {% include "partials/field.html" with field=form.email %}
+      <button class="btn btn-primary" type="submit">{% translate "Add administrator" %}</button>
+    </form>
+    <p class="help-text mt">{% translate "Administrators can see every school, student roster and coach contact. Only add people OSEA trusts with that information." %}</p>
+  </section>
+</div>
+{% endblock %}

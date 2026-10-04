@@ -7,7 +7,11 @@
   <img class="card-logo" src="{% static 'img/osea-logo-colour.webp' %}" width="640" height="457" alt="OSEA | AOSES">
   <h1>{% translate "Sign in" %}</h1>
   <p class="help-text">{% translate "For teacher coaches and OSEA administrators." %}</p>
-  {% include "partials/form_errors.html" %}
+  {% if limited %}
+    <div class="alert alert-error" role="alert"><p>{% translate "Too many unsuccessful sign-in attempts. For your security, sign-in is paused for 15 minutes. You can reset your password in the meantime." %}</p></div>
+  {% else %}
+    {% include "partials/form_errors.html" %}
+  {% endif %}
   <form method="post" novalidate>
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next }}">

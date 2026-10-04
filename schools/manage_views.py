@@ -10,7 +10,9 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import CharField, Count, OuterRef, Q, Subquery, Value
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -20,6 +22,7 @@ from accounts.permissions import admin_required
 from audit.log import changes_between, record, snapshot
 from audit.models import AuditEvent
 from core.csv_export import csv_response
+from core.full_export import build_zip
 
 from . import services
 from .forms import AccessDecisionForm, MembershipForm, SchoolBoardForm, SchoolForm, SchoolYearForm
@@ -366,6 +369,15 @@ def year_form(request, pk=None):
 @admin_required
 def exports(request):
     return render(request, "schools/manage/exports.html", {"year": SchoolYear.current()})
+
+
+@admin_required
+def export_everything(request):
+    record(request.user, "export.downloaded", "Downloaded the full data export (everything)")
+    response = HttpResponse(build_zip(), content_type="application/zip")
+    stamp = timezone.localtime().strftime("%Y-%m-%d")
+    response["Content-Disposition"] = f'attachment; filename="osea-everything-{stamp}.zip"'
+    return response
 
 
 @admin_required

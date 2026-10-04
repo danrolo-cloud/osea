@@ -1,0 +1,15 @@
+# GitHub opens a pull request when a package the site uses has an update,
+# so security fixes aren't missed. Review and merge them monthly.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: monthly
+    groups:
+      python-packages:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

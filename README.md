@@ -5,7 +5,7 @@ management, competition registration, schedules, results and standings.
 
 See [docs/PLAN.md](docs/PLAN.md) for the agreed scope, decisions and phases.
 
-## Current status: Phase 4 (results and standings): the full competition workflow works
+## Current status: Phase 5 in progress (pilot readiness). The full competition workflow works
 
 What works, with real data in the database:
 - **Coach sign-up:** account plus school request in one form, email confirmation link, "request another school".
@@ -49,9 +49,19 @@ Phase 4 adds:
 - **Standings** per stage from final results only, with admin-chosen points and tiebreaker order and a recorded
   OSEA decision for complete ties; shown publicly for published stages.
 
-Not built yet (Phase 5, pilot readiness): hosting, real email sending, admin two-factor sign-in,
-sign-in attempt limits and the backup guide. Those dashboard panels are
-labelled "coming in later phases". Emails print to the terminal in development; nothing is sent.
+Phase 5 so far:
+- **Two-step sign-in** with an authenticator app and one-time backup codes; required for administrators
+  (including the back office), optional for coaches.
+- **Sign-in protection:** pauses after repeated wrong passwords or codes; limits on sign-ups, password resets
+  and confirmation emails.
+- **Administrators screen:** add administrators (they set their own password), turn accounts off, reset a
+  colleague's two-step sign-in.
+- **Download everything:** every record as spreadsheets in one zip, for OSEA's monthly off-site copy.
+- **Security headers** (content security policy) and an automated accessibility check (axe) with no issues.
+- **Deployment template and guides:** `docs/DEPLOYMENT.md`, `docs/OPERATIONS.md`, `.do/app.yaml`.
+
+Not done yet, and needing OSEA's approval: hosting, real email sending, the domain. Emails print to the
+terminal in development; nothing is sent.
 
 ## Running it on your computer
 
@@ -68,6 +78,7 @@ createuser osea --pwprompt           # use the password "osea", or change DATABA
 createdb osea --owner osea
 
 python manage.py migrate             # set up the database tables
+python manage.py createcachetable    # small table used for sign-in attempt limits
 python manage.py seed_demo           # fictional boards, schools and coaches (development only)
 python manage.py runserver           # then open http://127.0.0.1:8000
 ```
@@ -76,7 +87,9 @@ Demo accounts (fictional, development only), password `osea-demo-2026`:
 - `admin@example.org`: OSEA administrator
 - `coach@mvdsb.example.ca`: teacher coach (approved at one school, pending at another)
 
-To create a real administrator account: `python manage.py createsuperuser`.
+To create the first real administrator: `python manage.py createsuperuser`. Add others from the
+**Administrators** screen. Two-step sign-in is optional locally (`OSEA_REQUIRE_ADMIN_2FA=false` in `.env`)
+and always required on the live site.
 
 ## Checks
 
@@ -100,7 +113,7 @@ Both run automatically on GitHub for every push.
 | `core/` | Home page, dashboards, CSV export helper |
 | `templates/` | Page layouts (HTML) |
 | `static/` | Stylesheet, fonts, small scripts |
-| `docs/` | Plan and decisions |
+| `docs/` | Plan and decisions (`PLAN.md`), going online (`DEPLOYMENT.md`), routine tasks and backups (`OPERATIONS.md`) |
 
 ## Secrets
 

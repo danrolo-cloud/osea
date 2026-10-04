@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ user.first_name }},
+
+{{ by.get_full_name }} has added you as an administrator on the OSEA platform.
+
+Choose your password here (the link works for a few days):
+{{ link }}
+
+After you sign in, you'll be asked to set up two-step sign-in with an authenticator app on your phone.
+
+Ontario School Esports Association
+{% endautoescape %}
