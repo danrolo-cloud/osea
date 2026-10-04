@@ -38,7 +38,7 @@ jobs:
       - key: DJANGO_EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: EMAIL_HOST
-        value: <smtp host from the email service>
+        value: smtp.gmail.com
       - key: EMAIL_PORT
         value: "587"
       - key: EMAIL_HOST_USER
@@ -48,7 +48,7 @@ jobs:
         type: SECRET
         value: <SET-IN-DASHBOARD>
       - key: DEFAULT_FROM_EMAIL
-        value: OSEA <no-reply@your-domain.ca>
+        value: OSEA Esports <platform@your-domain.ca>
 
 services:
   - name: web

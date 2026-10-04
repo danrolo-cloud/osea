@@ -12,8 +12,8 @@ small changes.
 | Account | Why | Approximate cost |
 |---|---|---|
 | DigitalOcean (in OSEA's name, OSEA's billing) | Runs the website and the database | US$5–12/month app + ~US$15/month database |
-| Email service (Postmark, or Amazon SES Canada) | Sends sign-in, approval and match emails | US$0–15/month |
-| Access to OSEA's domain settings (DNS) | Points e.g. `app.osea.ca` at the platform and lets the email service send as OSEA | usually already paid for |
+| A sending account in OSEA's Google Workspace (e.g. `platform@` your domain) | Sends sign-up, approval and match emails | free (Workspace for Nonprofits) |
+| Access to OSEA's domain settings (DNS) | Points e.g. `app.osea.ca` at the platform | usually already paid for |
 
 Use an OSEA-owned email address for these accounts (not a personal one), turn on
 two-step sign-in for each, and record who has access in OSEA's records.
@@ -37,8 +37,11 @@ two-step sign-in for each, and record who has access in OSEA's records.
    | `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://` + the site address |
    | `OSEA_CLIENT_IP_HEADER` | `HTTP_DO_CONNECTING_IP` (lets sign-in limits see real visitor addresses) |
    | `DJANGO_EMAIL_BACKEND` | `django.core.mail.backends.smtp.EmailBackend` |
-   | `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` | from the email service (*Encrypted* for user and password) |
-   | `DEFAULT_FROM_EMAIL` | e.g. `OSEA <no-reply@osea.ca>` |
+   | `EMAIL_HOST` | `smtp.gmail.com` |
+   | `EMAIL_PORT` | `587` |
+   | `EMAIL_HOST_USER` | the sending account's address, e.g. `platform@osea.ca` (*Encrypted*) |
+   | `EMAIL_HOST_PASSWORD` | the sending account's **app password** from step 6, not its normal password (*Encrypted*) |
+   | `DEFAULT_FROM_EMAIL` | `OSEA Esports <platform@osea.ca>` (must be the sending account's address) |
 
    Do **not** set `OSEA_ENVIRONMENT_LABEL` or `OSEA_REQUIRE_ADMIN_2FA` on the live site.
    (A separate *test* copy should set `OSEA_ENVIRONMENT_LABEL=Test` so nobody mistakes it for the real one.)
@@ -46,8 +49,20 @@ two-step sign-in for each, and record who has access in OSEA's records.
    automatically (the "prepare-database" job), which updates the database structure.
 5. **Domain.** In OSEA's DNS settings, add the record DigitalOcean shows (a CNAME for e.g. `app`).
    DigitalOcean then provides the HTTPS certificate automatically.
-6. **Email.** In the email service, verify the sending domain by adding the DNS records it shows
-   (SPF/DKIM). Until this is done, emails may land in junk folders or not arrive at all.
+6. **Email (Google Workspace).** A Workspace administrator for OSEA:
+   1. Creates a user just for the platform, e.g. `platform@osea.ca`. Free under Workspace for Nonprofits.
+      Give it a long password stored in OSEA's password manager, and turn on 2-Step Verification for it.
+   2. Signed in as that user, creates an **app password** (Google Account → Security → 2-Step Verification →
+      App passwords), named "OSEA platform". This 16-letter password goes in `EMAIL_HOST_PASSWORD` only.
+   3. Sets that user's Gmail to forward incoming mail to OSEA's main inbox, because coaches will reply
+      to the platform's emails.
+   4. In the Google Admin console (Apps → Google Workspace → Gmail → Authenticate email), checks that
+      **DKIM** is turned on for the domain. Google's SPF record is usually already in DNS; if not, add it.
+   5. Test: in the app's *Console*, run `python manage.py sendtestemail your.name@osea.ca` and check it arrives
+      (not in junk).
+
+   Google allows about 2,000 emails a day from one account, far more than OSEA needs. If the app password
+   is ever exposed, delete it in the same screen and create a new one; nothing else changes.
 7. **First administrator.** In the app's *Console*, run `python manage.py createsuperuser` and
    enter an OSEA email and a strong password. Sign in, and set up two-step sign-in when asked.
    Add the other administrators from **Administrators** in the site; they receive an email to

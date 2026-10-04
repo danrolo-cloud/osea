@@ -75,6 +75,6 @@ confirm the data is there. Record the date you did it.
 | Code | GitHub, `danrolo-cloud/osea` |
 | Website and database | DigitalOcean, Toronto region |
 | Passwords and keys for the site | DigitalOcean app settings (encrypted), never in the code |
-| Email sending | the email service account |
+| Email sending | the platform account in OSEA's Google Workspace (app password in the hosting settings) |
 | Monthly data copies | OSEA's shared drive (restricted folder) |
 | How-tos | this file, `docs/DEPLOYMENT.md`, `README.md` |

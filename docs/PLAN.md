@@ -55,6 +55,8 @@ First complete workflow:
     for a win/loss and the admin's ordered tiebreakers (head-to-head, game difference, games won, score
     difference, opponents' points), then OSEA's recorded decision. Double elimination plays a grand-final reset
     if the losers-bracket team wins the grand final (can be switched off per stage).
+13. **Email is sent through OSEA's Google Workspace** (decided 2026-10-04): a dedicated platform account
+    (e.g. `platform@`), free under Workspace for Nonprofits; replies forward to OSEA's main inbox.
 4. **Result confirmation.** The opposing coach confirms or disputes within 48 hours. No response sends it to the
    admin queue with one-click finalize (no automatic finalization). Disputes always go to an admin.
    Admins can enter or correct any result, and every change is logged.
@@ -104,7 +106,7 @@ automatic round-robin generation, result screenshot uploads, notification emails
 | 2. Competitions & registration | Admin-managed games and competitions (own dates and rules), divisions, team registration with rosters, review queue, division assignment | ✅ Oct 4 |
 | 3. Schedules & announcements | Stages with admin-chosen formats, generated matches and brackets, coach-to-coach scheduling, cancellations and byes, public schedules, announcements | ✅ Oct 4 |
 | 4. Results & standings | Submit, confirm or dispute, admin finalize, forfeits, bracket advancement, Swiss pairing, standings with tiebreakers, public standings | ✅ Oct 4 |
-| 5. Pilot readiness | Done: two-step sign-in, sign-in limits, admin accounts, full export, security headers, accessibility check, deployment and operations guides. Waiting on OSEA: hosting account, email service, domain; then a pilot with a few coaches | before Dec 18 |
+| 5. Pilot readiness | Done: two-step sign-in, sign-in limits, admin accounts, full export, security headers, accessibility check, deployment and operations guides. Email: OSEA's Google Workspace. Waiting on OSEA: hosting account, domain; then a pilot with a few coaches | before Dec 18 |
 | Launch | Real coaches onboarded; Valorant registration opens | January 2027 |
 
 Targets assume regular review checkpoints with OSEA. The December pilot must finish before the winter break.
