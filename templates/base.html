@@ -18,7 +18,7 @@
   <a class="skip-link" href="#main">{% translate "Skip to main content" %}</a>
 
   {% if environment_label %}
-    <aside class="env-banner" aria-label="{% translate 'Site notice' %}">{% blocktranslate %}{{ environment_label }} site · fictional data only{% endblocktranslate %}<span class="env-extra"> · {% translate "emails are not sent" %}</span></aside>
+    <aside class="env-banner" aria-label="{% translate 'Site notice' %}">{% if emails_sent %}{% blocktranslate %}{{ environment_label }} site · use fictional student information only{% endblocktranslate %}{% else %}{% blocktranslate %}{{ environment_label }} site · fictional data only{% endblocktranslate %}<span class="env-extra"> · {% translate "emails are not sent" %}</span>{% endif %}</aside>
   {% endif %}
 
   <header class="site-header">

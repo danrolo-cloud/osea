@@ -1,12 +1,17 @@
 """
 Create fictional demo data for development and demonstrations.
 
-    python manage.py seed_demo
+    python manage.py seed_demo            # development: demo accounts you can sign in with
+    python manage.py seed_demo --pilot    # pilot site: fictional schools and teams to play against
 
-Every board, school and person here is made up, and all email domains use
-the reserved ".example" names that can never belong to a real organisation.
-Refuses to run unless DJANGO_DEBUG is on, so demo data can never reach the
-live site. Safe to run more than once.
+Every board, school and person here is made up, and all email addresses use
+reserved names (".example", example.org/.com) that can never belong to a real
+person, so no email can reach anyone.
+
+Development mode refuses to run unless DJANGO_DEBUG is on. Pilot mode runs only
+on a site marked as a test (OSEA_ENVIRONMENT_LABEL set), never on the live site,
+and its fictional accounts are switched off with no password, so nobody can sign
+in as them. Safe to run more than once.
 """
 
 import datetime
@@ -27,9 +32,9 @@ from schools.models import CoachAccess, Membership, School, SchoolBoard, SchoolY
 DEMO_PASSWORD = "osea-demo-2026"
 
 BOARDS = [
-    ("Maple Valley District School Board", "mvdsb.example.ca"),
-    ("Lakeshore Catholic District School Board", "lcdsb.example.ca"),
-    ("Conseil scolaire Rivière-Nord", "csrn.example.ca"),
+    ("Maple Valley District School Board", "mvdsb.example"),
+    ("Lakeshore Catholic District School Board", "lcdsb.example"),
+    ("Conseil scolaire Rivière-Nord", "csrn.example"),
 ]
 
 # (name, city, board index or None, level)
@@ -55,7 +60,7 @@ MEMBERSHIPS = [
 # (email, first, last, verified, [(school index or unlisted name, status, position)])
 COACHES = [
     (
-        "coach@mvdsb.example.ca",
+        "coach@mvdsb.example",
         "Jordan",
         "Rivera",
         True,
@@ -64,11 +69,11 @@ COACHES = [
             (2, CoachAccess.Status.PENDING, "Esports club supervisor"),
         ],
     ),
-    ("priya.shah@mvdsb.example.ca", "Priya", "Shah", True, [(0, CoachAccess.Status.APPROVED, "Math teacher")]),
-    ("sam.lee@lcdsb.example.ca", "Sam", "Lee", True, [(3, CoachAccess.Status.PENDING, "Technology teacher")]),
+    ("priya.shah@mvdsb.example", "Priya", "Shah", True, [(0, CoachAccess.Status.APPROVED, "Math teacher")]),
+    ("sam.lee@lcdsb.example", "Sam", "Lee", True, [(3, CoachAccess.Status.PENDING, "Technology teacher")]),
     ("alex.morgan@mail.example.com", "Alex", "Morgan", True, [(1, CoachAccess.Status.PENDING, "Parent volunteer")]),
     (
-        "taylor.nguyen@mvdsb.example.ca",
+        "taylor.nguyen@mvdsb.example",
         "Taylor",
         "Nguyen",
         False,
@@ -76,18 +81,32 @@ COACHES = [
             ("Riverside Middle School, Elmsworth (Maple Valley DSB)", CoachAccess.Status.PENDING, "Grade 8 teacher"),
         ],
     ),
-    ("marie.tremblay@csrn.example.ca", "Marie", "Tremblay", True, [(5, CoachAccess.Status.APPROVED, "Enseignante")]),
-    ("chris.patel@lcdsb.example.ca", "Chris", "Patel", True, [(4, CoachAccess.Status.APPROVED, "Grade 6 teacher")]),
+    ("marie.tremblay@csrn.example", "Marie", "Tremblay", True, [(5, CoachAccess.Status.APPROVED, "Enseignante")]),
+    ("chris.patel@lcdsb.example", "Chris", "Patel", True, [(4, CoachAccess.Status.APPROVED, "Grade 6 teacher")]),
 ]
 
 
 class Command(BaseCommand):
-    help = "Create fictional demo data (development only)."
+    help = "Create fictional demo data (development, or --pilot on a test site)."
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--pilot",
+            action="store_true",
+            help="For the pilot site: fictional schools and teams only; their accounts can't sign in.",
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
-        if not settings.DEBUG:
-            raise CommandError("seed_demo only runs in development (DJANGO_DEBUG=true).")
+        self.pilot = options["pilot"]
+        if self.pilot:
+            if not settings.OSEA_ENVIRONMENT_LABEL:
+                raise CommandError(
+                    "seed_demo --pilot only runs on a site marked as a test (OSEA_ENVIRONMENT_LABEL set), "
+                    "never on the live site."
+                )
+        elif not settings.DEBUG:
+            raise CommandError("seed_demo only runs in development (DJANGO_DEBUG=true). On the pilot site use --pilot.")
 
         admin = self._user("admin@example.org", "Avery", "Admin", User.Role.ADMIN, verified=True)
 
@@ -155,8 +174,11 @@ class Command(BaseCommand):
             "4 competitions: Valorant (opens Jan. 5), Smash singles (Oct. 8-27), Rocket League demo (open now), "
             "Valorant Fall Showcase (Swiss round 1 results in, double-elimination playoffs in draft)."
         )
-        self.stdout.write("Sign in as admin@example.org (administrator) or coach@mvdsb.example.ca (coach).")
-        self.stdout.write(self.style.SUCCESS(f"Demo password for all accounts: {DEMO_PASSWORD}"))
+        if self.pilot:
+            self.stdout.write(self.style.SUCCESS("Fictional accounts are switched off; nobody can sign in as them."))
+        else:
+            self.stdout.write("Sign in as admin@example.org (administrator) or coach@mvdsb.example (coach).")
+            self.stdout.write(self.style.SUCCESS(f"Demo password for all accounts: {DEMO_PASSWORD}"))
 
     def _competitions(self, year, schools, admin):
         toronto = ZoneInfo("America/Toronto")
@@ -282,7 +304,7 @@ class Command(BaseCommand):
                 registration.decided_at, registration.decided_by = now, admin
             registration.save()
 
-        jordan = User.objects.get(email="coach@mvdsb.example.ca")
+        jordan = User.objects.get(email="coach@mvdsb.example")
         team(schools[0], "Maplewood Lynx Purple", maplewood[:4], Registration.Status.SUBMITTED, jordan)
         team(schools[0], "Maplewood Lynx Green", maplewood[4:6], Registration.Status.DRAFT, jordan)
         team(
@@ -290,7 +312,7 @@ class Command(BaseCommand):
             "Harbour Hawks",
             harbour,
             Registration.Status.APPROVED,
-            User.objects.get(email="chris.patel@lcdsb.example.ca"),
+            User.objects.get(email="chris.patel@lcdsb.example"),
             divisions["Middle School"],
         )
         team(
@@ -298,7 +320,7 @@ class Command(BaseCommand):
             "Les Érables Esports",
             erables[:3],
             Registration.Status.APPROVED,
-            User.objects.get(email="marie.tremblay@csrn.example.ca"),
+            User.objects.get(email="marie.tremblay@csrn.example"),
             divisions["Platinum–Diamond"],
         )
 
@@ -330,8 +352,8 @@ class Command(BaseCommand):
         if not created:
             return
         coaches = {
-            0: User.objects.get(email="coach@mvdsb.example.ca"),
-            5: User.objects.get(email="marie.tremblay@csrn.example.ca"),
+            0: User.objects.get(email="coach@mvdsb.example"),
+            5: User.objects.get(email="marie.tremblay@csrn.example"),
         }
         names = [
             (0, "Maplewood Lynx"),
@@ -421,7 +443,11 @@ class Command(BaseCommand):
             email=email, defaults={"first_name": first, "last_name": last, "role": role}
         )
         if created:
-            user.set_password(DEMO_PASSWORD)
+            if self.pilot:
+                user.set_unusable_password()
+                user.is_active = False
+            else:
+                user.set_password(DEMO_PASSWORD)
             user.email_verified_at = timezone.now() if verified else None
             user.save()
         return user

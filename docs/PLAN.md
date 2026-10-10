@@ -60,6 +60,10 @@ First complete workflow:
 14. **Hosting: DigitalOcean, Toronto, at `play.osea.ca`** (approved 2026-10-04): US$5/month app
     plus ~US$15/month managed database with daily backups. OSEA is an incorporated nonprofit, not a
     registered charity, so Microsoft's charity credits don't apply; DigitalOcean's nonprofit credits may.
+15. **The pilot runs on the real site** (decided 2026-10-10) to avoid paying for a second copy: `play.osea.ca`
+    is labelled "Pilot" until December, holds fictional schools and students (`seed_demo --pilot`) plus real
+    volunteer coaches, and is wiped with `end_pilot` before the January launch. Code is published from the
+    `main` branch; changes reach the site only when OSEA merges them and clicks Deploy.
 4. **Result confirmation.** The opposing coach confirms or disputes within 48 hours. No response sends it to the
    admin queue with one-click finalize (no automatic finalization). Disputes always go to an admin.
    Admins can enter or correct any result, and every change is logged.
@@ -186,5 +190,9 @@ times and report results, results are confirmed or reviewed, and standings updat
 - The full export holds personal information; it is administrator-only and every download is logged.
 - Accessibility: axe (WCAG 2.1 A/AA and best practices) on 30+ page views at desktop and phone sizes: no
   issues. Keyboard: skip link first, visible focus, sign-in works with the keyboard alone.
+- Demo email addresses now use reserved names only (`mvdsb.example`, `example.org`). They previously ended in
+  `example.ca`, which is not reserved and could belong to someone. Sending also skips any reserved address
+  (`core.mail.SafeSMTPBackend`) as a backstop.
+- Pilot tools: `seed_demo --pilot` and `end_pilot` (see docs/DEPLOYMENT.md); both refuse to run on the live site.
 - Still to do once OSEA approves: create the hosting, email and DNS settings (docs/DEPLOYMENT.md), a test
   copy of the site for the pilot, and a short privacy notice for coaches and schools (OSEA to approve the wording).

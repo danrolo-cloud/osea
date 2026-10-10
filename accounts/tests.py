@@ -5,6 +5,9 @@ from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from competitions.models import Registration
+from core.mail import is_reserved
+
 from .models import User
 
 PASSWORD = "a-long-test-password"
@@ -107,6 +110,27 @@ class SeedDemoCommandTests(TestCase):
         call_command("seed_demo", stdout=StringIO())
         self.assertEqual(User.objects.count(), count)
         self.assertTrue(User.objects.get(email="admin@example.org").is_osea_admin)
-        self.assertTrue(User.objects.get(email="coach@mvdsb.example.ca").is_coach)
-        # Every demo email uses a reserved ".example" domain that can't belong to a real person.
-        self.assertFalse(User.objects.exclude(email__regex=r"@([a-z]+\.)*example(\.[a-z]+)?$").exists())
+        self.assertTrue(User.objects.get(email="coach@mvdsb.example").is_coach)
+        # Every demo email uses a reserved domain that can't belong to a real person.
+        self.assertTrue(all(is_reserved(email) for email in User.objects.values_list("email", flat=True)))
+
+    @override_settings(DEBUG=False, OSEA_ENVIRONMENT_LABEL="")
+    def test_pilot_mode_refuses_on_the_live_site(self):
+        with self.assertRaises(CommandError):
+            call_command("seed_demo", pilot=True)
+        self.assertFalse(User.objects.exists())
+
+    @override_settings(DEBUG=False, OSEA_ENVIRONMENT_LABEL="Pilot")
+    def test_development_mode_refuses_on_the_pilot_site(self):
+        with self.assertRaises(CommandError):
+            call_command("seed_demo")
+        self.assertFalse(User.objects.exists())
+
+    @override_settings(DEBUG=False, OSEA_ENVIRONMENT_LABEL="Pilot")
+    def test_pilot_mode_creates_teams_nobody_can_sign_in_as(self):
+        call_command("seed_demo", pilot=True, stdout=StringIO())
+        self.assertTrue(Registration.objects.exists())
+        self.assertFalse(User.objects.filter(is_active=True).exists())
+        self.assertFalse(any(user.has_usable_password() for user in User.objects.all()))
+        self.assertFalse(self.client.login(email="admin@example.org", password="osea-demo-2026"))
+        self.assertTrue(all(is_reserved(email) for email in User.objects.values_list("email", flat=True)))

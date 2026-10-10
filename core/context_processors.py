@@ -61,9 +61,13 @@ _SECTIONS = {
 }
 
 
+_NOT_SENDING = ("console.EmailBackend", "locmem.EmailBackend", "dummy.EmailBackend")
+
+
 def site(request):
     match = getattr(request, "resolver_match", None)
     return {
         "environment_label": settings.OSEA_ENVIRONMENT_LABEL,
+        "emails_sent": not settings.EMAIL_BACKEND.endswith(_NOT_SENDING),
         "nav_section": _SECTIONS.get(match.url_name if match else "", ""),
     }

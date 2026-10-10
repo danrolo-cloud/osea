@@ -41,15 +41,16 @@ two-step sign-in for each, and record who has access in OSEA's records.
    | `DJANGO_ALLOWED_HOSTS` | `play.osea.ca` |
    | `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://play.osea.ca` |
    | `OSEA_CLIENT_IP_HEADER` | `HTTP_DO_CONNECTING_IP` (lets sign-in limits see real visitor addresses) |
-   | `DJANGO_EMAIL_BACKEND` | `django.core.mail.backends.smtp.EmailBackend` |
+   | `DJANGO_EMAIL_BACKEND` | `core.mail.SafeSMTPBackend` |
    | `EMAIL_HOST` | `smtp.gmail.com` |
    | `EMAIL_PORT` | `587` |
    | `EMAIL_HOST_USER` | the sending account's address, e.g. `platform@osea.ca` (*Encrypted*) |
    | `EMAIL_HOST_PASSWORD` | the sending account's **app password** from step 6, not its normal password (*Encrypted*) |
    | `DEFAULT_FROM_EMAIL` | `OSEA Esports <platform@osea.ca>` (must be the sending account's address) |
 
-   Do **not** set `OSEA_ENVIRONMENT_LABEL` or `OSEA_REQUIRE_ADMIN_2FA` on the live site.
-   (A separate *test* copy should set `OSEA_ENVIRONMENT_LABEL=Test` so nobody mistakes it for the real one.)
+   **During the pilot** also set `OSEA_ENVIRONMENT_LABEL` = `Pilot`. Every page then shows a yellow
+   "Pilot site · use fictional student information only" banner, and the pilot tools below work.
+   It is removed when the pilot ends. Never set `OSEA_REQUIRE_ADMIN_2FA`.
 4. **Before each release** the app runs `python manage.py migrate` and `createcachetable`
    automatically (the "prepare-database" job), which updates the database structure.
 5. **Domain: `play.osea.ca`.** OSEA's main Wix website stays exactly as it is. In DigitalOcean, open the app →
@@ -87,13 +88,34 @@ two-step sign-in for each, and record who has access in OSEA's records.
    enter an OSEA email and a strong password. Sign in, and set up two-step sign-in when asked.
    Add the other administrators from **Administrators** in the site; they receive an email to
    choose their own password.
-8. **Real data.** Add school boards, schools and the school year. Do **not** load the demo data
-   (`seed_demo` refuses to run on the live site anyway).
+8. **Pilot data.** In the *Console*, run `python manage.py seed_demo --pilot`. It adds fictional boards,
+   schools, students and teams, so pilot coaches have opponents and examples. The fictional coaches'
+   accounts are switched off (nobody can sign in as them, and they are never emailed). In matches against
+   a fictional team, an administrator sets the time and enters the result.
+
+## Running the pilot (until December)
+
+- Pilot coaches sign up themselves at `https://play.osea.ca`, then an administrator approves their access
+  to a fictional school (or to a pilot school added for them).
+- Students entered during the pilot must be **fictional**. Real coach names and emails are fine.
+- Emails really are sent during the pilot, from `platform@osea.ca`.
+
+## Ending the pilot (before the January launch)
+
+1. If OSEA wants a record of the pilot, an administrator downloads **Exports → Download everything** and
+   stores it in the restricted shared-drive folder.
+2. In the *Console*, run `python manage.py end_pilot --confirm "DELETE PILOT DATA"`. This deletes every
+   record, including pilot accounts and the activity log. It only works while `OSEA_ENVIRONMENT_LABEL` is
+   set, so it can never run on the live site.
+3. In the app settings, delete `OSEA_ENVIRONMENT_LABEL` and deploy. The banner disappears.
+4. Repeat step 7 (first administrator), then add the real school boards, schools and school year.
+   Do **not** load demo data: `seed_demo` refuses to run on the live site.
+5. Go through the checklist below. Pilot coaches sign up again on the live site.
 
 ## Check after going live
 
 - [ ] `https://` address works and plain `http://` redirects to it
-- [ ] No yellow "Development/Test site" banner
+- [ ] No yellow "Pilot site" banner
 - [ ] Sign-in asks administrators for their two-step code
 - [ ] A test coach sign-up receives the confirmation email (check junk folders)
 - [ ] `/healthz` shows `ok`

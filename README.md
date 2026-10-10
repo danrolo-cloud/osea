@@ -85,7 +85,7 @@ python manage.py runserver           # then open http://127.0.0.1:8000
 
 Demo accounts (fictional, development only), password `osea-demo-2026`:
 - `admin@example.org`: OSEA administrator
-- `coach@mvdsb.example.ca`: teacher coach (approved at one school, pending at another)
+- `coach@mvdsb.example`: teacher coach (approved at one school, pending at another)
 
 To create the first real administrator: `python manage.py createsuperuser`. Add others from the
 **Administrators** screen. Two-step sign-in is optional locally (`OSEA_REQUIRE_ADMIN_2FA=false` in `.env`)
