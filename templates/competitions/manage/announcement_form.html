@@ -6,7 +6,7 @@
 <div class="card card-medium">
   <p class="eyebrow">{{ competition.name }}</p>
   <h1>{% if announcement %}{% translate "Edit announcement" %}{% else %}{% translate "Post an announcement" %}{% endif %}</h1>
-  <p class="help-text">{% translate "Shown on the dashboards of coaches with teams in this competition (or one division). Emails will be sent once real email is switched on." %}</p>
+  <p class="help-text">{% translate "Shown on the dashboards of coaches with teams in this competition (or one division), and emailed to them if you choose." %}</p>
   {% include "partials/form_errors.html" %}
   <form method="post" novalidate>
     {% csrf_token %}
@@ -14,6 +14,8 @@
     {% include "partials/field.html" with field=form.body %}
     {% include "partials/field.html" with field=form.division %}
     {% include "partials/field.html" with field=form.is_public %}
+    {% include "partials/field.html" with field=form.send_email %}
+    {% if announcement.emailed_at %}<p class="help-text">{% blocktranslate count counter=announcement.emailed_count with when=announcement.emailed_at|date:"M j, g:i a" %}Last emailed {{ when }} to {{ counter }} coach.{% plural %}Last emailed {{ when }} to {{ counter }} coaches.{% endblocktranslate %}</p>{% endif %}
     <div class="form-actions"><button class="btn btn-primary" type="submit">{% translate "Save" %}</button></div>
   </form>
   {% if announcement %}

@@ -576,3 +576,56 @@ class EndToEndTests(CompetitionTestData):
         registration.refresh_from_db()
         self.assertEqual(registration.division, self.division)
         self.assertTrue(AuditEvent.objects.filter(action="registration.division_assigned").exists())
+
+
+# ------------------------------------------------------------------ announcement emails
+
+
+class AnnouncementEmailTests(CompetitionTestData):
+    def setUp(self):
+        self.team_a = self.submitted()  # School A, placed in the division below
+        Registration.objects.filter(pk=self.team_a.pk).update(division=self.division)
+        self.team_b = self.submitted(
+            coach=self.coach_b, school=self.school_b, students=self.students_b[:5], name="Team Two"
+        )
+        self.client.force_login(self.admin)
+        mail.outbox.clear()
+
+    def post(self, **data):
+        with self.captureOnCommitCallbacks(execute=True):
+            return self.client.post(
+                reverse("competitions:announcement_create", args=[self.comp.pk]),
+                {"title": "Week 1", "body": "Matches start Monday.", "division": "", **data},
+            )
+
+    def test_whole_competition_reaches_every_team_one_copy_each(self):
+        self.post(send_email="on")
+        self.assertEqual(sorted(m.to[0] for m in mail.outbox), [self.coach_a.email, self.coach_b.email])
+        # Separate copies: no coach sees another coach's address.
+        self.assertTrue(all(len(m.to) == 1 and not m.cc and not m.bcc for m in mail.outbox))
+        self.assertIn("Matches start Monday.", mail.outbox[0].body)
+        announcement = self.comp.announcements.get()
+        self.assertEqual(announcement.emailed_count, 2)
+        self.assertTrue(AuditEvent.objects.filter(action="announcement.emailed").exists())
+
+    def test_division_announcement_reaches_only_that_division(self):
+        self.post(send_email="on", division=self.division.pk)
+        self.assertEqual([m.to for m in mail.outbox], [[self.coach_a.email]])
+
+    def test_withdrawn_teams_are_not_emailed(self):
+        services.withdraw(REQ, self.team_b, self.coach_b)
+        mail.outbox.clear()
+        self.post(send_email="on")
+        self.assertEqual([m.to for m in mail.outbox], [[self.coach_a.email]])
+
+    def test_not_emailed_unless_ticked(self):
+        self.post()
+        self.assertEqual(mail.outbox, [])
+        self.assertIsNone(self.comp.announcements.get().emailed_at)
+
+    def test_coaches_cannot_post_or_email(self):
+        self.client.force_login(self.coach_a)
+        response = self.post(send_email="on")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(mail.outbox, [])
+        self.assertFalse(self.comp.announcements.exists())

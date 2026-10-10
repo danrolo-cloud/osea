@@ -1,0 +1,10 @@
+{% autoescape off %}{{ announcement.title }}
+{{ announcement.competition }}{% if announcement.division %} · {{ announcement.division }}{% endif %}
+
+{{ announcement.body }}
+
+See the competition: {{ link }}
+
+You're receiving this because your school has a team in this competition.
+Ontario School Esports Association
+{% endautoescape %}

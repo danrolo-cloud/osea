@@ -340,6 +340,8 @@ class Announcement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
     updated_at = models.DateTimeField(auto_now=True)
+    emailed_at = models.DateTimeField(null=True, blank=True)
+    emailed_count = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["-created_at"]

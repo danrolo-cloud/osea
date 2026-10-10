@@ -208,7 +208,17 @@ class AnnouncementForm(forms.ModelForm):
         fields = ["title", "body", "division", "is_public"]
         widgets = {"body": forms.Textarea(attrs={"rows": 6})}
 
+    send_email = forms.BooleanField(
+        label=_("Also email it to these coaches now"),
+        required=False,
+        initial=True,
+        help_text=_("Each coach gets their own copy; no one sees other coaches' addresses."),
+    )
+
     def __init__(self, *args, competition, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["division"].queryset = competition.divisions.all()
         self.fields["division"].empty_label = _("Everyone in the competition")
+        if self.instance.pk:
+            self.fields["send_email"].initial = False
+            self.fields["send_email"].label = _("Email the updated version to these coaches now")

@@ -155,3 +155,40 @@ class EndPilotTests(TransactionTestCase):
             call_command("end_pilot", confirm="DELETE PILOT DATA", stdout=StringIO())
         self.assertFalse(User.objects.exists())
         self.assertFalse(AuditEvent.objects.exists())
+
+
+class PrivacyNoticeTests(TestCase):
+    def test_public_and_linked_from_every_page_and_sign_up(self):
+        response = self.client.get(reverse("core:privacy"))
+        self.assertContains(response, "Student names and rosters are never public")
+        self.assertContains(self.client.get("/"), reverse("core:privacy"))
+        self.assertContains(self.client.get(reverse("accounts:sign_up")), reverse("core:privacy"))
+
+    def test_marked_as_draft_until_approved(self):
+        self.assertContains(self.client.get(reverse("core:privacy")), "Draft for OSEA")
+        with self.settings(OSEA_PRIVACY_NOTICE_APPROVED=True, OSEA_PRIVACY_CONTACT="privacy@osea.example"):
+            response = self.client.get(reverse("core:privacy"))
+        self.assertNotContains(response, "Draft for OSEA")
+        self.assertNotContains(response, "To be decided by OSEA")
+        self.assertContains(response, "mailto:privacy@osea.example")
+
+
+class PageTitleTests(TestCase):
+    """Page titles are plain text; a misplaced block once hid the Account page's two-step section in its title."""
+
+    def test_titles_contain_no_markup(self):
+        import re
+
+        coach = User.objects.create_user(email="c@example.org", password=PASSWORD, role=User.Role.COACH)
+        self.client.force_login(coach)
+        for name in ["accounts:profile", "core:coach_dashboard", "core:privacy", "core:home"]:
+            html = self.client.get(reverse(name)).content.decode()
+            title = re.search(r"<title>(.*?)</title>", html, re.S).group(1)
+            self.assertNotIn("<", title, name)
+
+    def test_account_page_shows_two_step_section(self):
+        coach = User.objects.create_user(email="c@example.org", password=PASSWORD, role=User.Role.COACH)
+        self.client.force_login(coach)
+        html = self.client.get(reverse("accounts:profile")).content.decode()
+        body = html.split("</title>", 1)[1]
+        self.assertIn("Turn on two-step sign-in", body)

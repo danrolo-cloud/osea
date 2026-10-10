@@ -31,6 +31,8 @@
       {% include "partials/field.html" with field=school_form.position %}
       {% include "partials/field.html" with field=school_form.attestation %}
     </fieldset>
+    {% url 'core:privacy' as privacy_url %}
+    <p class="help-text">{% blocktranslate with url=privacy_url %}How OSEA uses coach and student information: <a href="{{ url }}">privacy notice</a>.{% endblocktranslate %}</p>
     <div class="form-actions">
       <button class="btn btn-primary" type="submit">{% translate "Create account" %}</button>
       <span class="muted">{% translate "Already have an account?" %} <a href="{% url 'accounts:login' %}">{% translate "Sign in" %}</a></span>

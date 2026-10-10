@@ -48,7 +48,8 @@ First complete workflow:
     coach accepts, and the time is set; no administrator approval. Either side can propose a change later; the
     agreed time stands until a new one is accepted. Administrators can still set, change or cancel any match.
 11. **Announcements** are posted to a whole competition or one division, shown on those coaches' dashboards, and on
-    the public competition page only if marked public. They will be emailed once real email is approved.
+    the public competition page only if marked public. The administrator can also email it (one separate copy per
+    coach, so no one sees other addresses); the competition page shows whether and to how many it was emailed.
 12. **Results and standings** (defaults agreed 2026-10-04, may change later; all are per-stage settings):
     a result records games won by each side, with optional per-game scores; either coach reports it, the other
     confirms (final) or disputes; disputes and results unconfirmed after 48 hours go to OSEA. Standings use points
@@ -93,7 +94,7 @@ Registration statuses: draft → submitted → (changes requested → submitted)
 
 Automated payments, Discord, game APIs, advanced brackets, sponsorships, student accounts,
 judged/submission formats (Minecraft Education), custom registration questions per competition,
-automatic round-robin generation, result screenshot uploads, notification emails beyond account emails.
+result screenshot uploads, match-time reminder emails.
 
 ## Technology (plain language)
 
@@ -194,5 +195,13 @@ times and report results, results are confirmed or reviewed, and standings updat
   `example.ca`, which is not reserved and could belong to someone. Sending also skips any reserved address
   (`core.mail.SafeSMTPBackend`) as a backstop.
 - Pilot tools: `seed_demo --pilot` and `end_pilot` (see docs/DEPLOYMENT.md); both refuse to run on the live site.
+- Announcement emails: optional per announcement, to the coaches of every team (or one division) still in the
+  competition; withdrawn teams are left out.
+- Privacy notice at `/privacy/`, linked from every page and the sign-up form. Shown as a **draft** until OSEA
+  approves the wording (`OSEA_PRIVACY_NOTICE_APPROVED=true`). Open decision for OSEA: how long student
+  information is kept after a student leaves and how removal requests are handled; deleting student
+  records isn't built yet and depends on that decision.
+- Fixed: the Account page's two-step sign-in section had been placed in the page title, so it never showed.
+  A test now checks page titles are plain text.
 - Still to do once OSEA approves: create the hosting, email and DNS settings (docs/DEPLOYMENT.md), a test
   copy of the site for the pilot, and a short privacy notice for coaches and schools (OSEA to approve the wording).

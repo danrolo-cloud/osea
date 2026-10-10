@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Privacy notice" %}{% endblock %}
+{% block content %}
+<article class="card card-medium">
+  <p class="eyebrow">{% translate "Ontario School Esports Association" %}</p>
+  <h1>{% translate "Privacy notice" %}</h1>
+  {% if draft %}
+    <div class="alert alert-warning"><p>{% translate "Draft for OSEA's review. This wording has not been approved yet." %}</p></div>
+  {% endif %}
+
+  <p>{% translate "This notice explains what information the OSEA competition platform holds, why, who can see it, and how long it is kept. It covers this site only, not OSEA's main website." %}</p>
+
+  <h2>{% translate "What we collect" %}</h2>
+  <ul>
+    <li>{% translate "<strong>Teacher coaches:</strong> name, school email address, the schools they coach for and their role there, and a password (stored only in scrambled form)." %}</li>
+    <li>{% translate "<strong>Students:</strong> first name, last initial, grade, in-game name and, for some games, an optional rank. Students do not have accounts. We do not collect birthdates, home addresses, phone numbers, photos or student email addresses." %}</li>
+    <li>{% translate "<strong>Schools:</strong> name, city, school board, OSEA membership and payment records." %}</li>
+    <li>{% translate "<strong>Competition records:</strong> teams, rosters, match times, results and announcements." %}</li>
+  </ul>
+
+  <h2>{% translate "Consent" %}</h2>
+  <p>{% translate "Coaches enter student information. Before registering a team, the coach confirms that the school has the consent its own policies require for students to take part and for this information to be shared with OSEA." %}</p>
+
+  <h2>{% translate "Why we use it" %}</h2>
+  <p>{% translate "Only to run school esports competitions: confirming coaches and school memberships, registering teams, checking eligibility rules (such as grade), scheduling matches, recording results and contacting coaches. We do not sell information, show advertising, or use it for marketing." %}</p>
+
+  <h2>{% translate "Who can see what" %}</h2>
+  <ul>
+    <li>{% translate "<strong>Anyone</strong> can see published competitions, team names, school names, schedules, results and standings, and announcements OSEA marks as public." %}</li>
+    <li>{% translate "<strong>Student names and rosters are never public.</strong> They are visible to coaches approved for that school and to OSEA administrators." %}</li>
+    <li>{% translate "<strong>Coach contact details are never public.</strong> When two teams play each other, their coaches can see each other's name and email address for that match, so they can arrange a time." %}</li>
+    <li>{% translate "<strong>OSEA administrators</strong> can see everything, in order to run the competitions. They must use two-step sign-in." %}</li>
+  </ul>
+
+  <h2>{% translate "Where it is stored" %}</h2>
+  <p>{% translate "The platform and its database are hosted in Toronto, Canada (DigitalOcean), with daily backups. Connections to the site are encrypted. Email notifications are sent through OSEA's Google Workspace account; some notifications about roster changes include a student's first name and last initial." %}</p>
+
+  <h2>{% translate "Cookies" %}</h2>
+  <p>{% translate "The site uses only the cookies needed to keep you signed in and protect forms. There are no advertising or tracking cookies, and no analytics." %}</p>
+
+  <h2>{% translate "How long we keep it" %}</h2>
+  <p>{% translate "Coaches mark students who have left the school; they are then no longer available for new teams. Past rosters and results are kept as the competition's history. A permanent activity log records who changed what, so changes can be traced." %}</p>
+  {% if draft %}
+    <p class="alert alert-warning">{% translate "To be decided by OSEA: how many years student information is kept after a student leaves, how a removal request is handled, and whether past rosters should then show only the team. (The platform can't delete student records yet; this will be built once OSEA decides.)" %}</p>
+  {% endif %}
+
+  <h2>{% translate "Your choices" %}</h2>
+  <p>{% translate "Coaches can view and correct their own details and their students' details at any time. A school, coach or family can ask OSEA to see or correct information. OSEA can also provide a school with a copy of its records." %}</p>
+
+  <h2>{% translate "Contact" %}</h2>
+  <p>{% if contact %}{% blocktranslate %}Questions or requests: <a href="mailto:{{ contact }}">{{ contact }}</a>.{% endblocktranslate %}{% else %}{% translate "Questions or requests: contact OSEA." %}{% if draft %} <em>{% translate "(Privacy contact email to be confirmed by OSEA.)" %}</em>{% endif %}{% endif %}</p>
+</article>
+{% endblock %}

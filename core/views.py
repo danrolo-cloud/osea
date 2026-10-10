@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import connection
@@ -23,6 +24,14 @@ from schools.models import CoachAccess, Membership, SchoolYear
 
 
 @require_GET
+def privacy(request):
+    return render(
+        request,
+        "core/privacy.html",
+        {"draft": not settings.OSEA_PRIVACY_NOTICE_APPROVED, "contact": settings.OSEA_PRIVACY_CONTACT},
+    )
+
+
 def home(request):
     competitions = (
         Competition.objects.filter(is_published=True, registration_closes_at__gt=timezone.now())

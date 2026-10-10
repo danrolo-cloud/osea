@@ -193,6 +193,10 @@ X_FRAME_OPTIONS = "DENY"
 # Shown in the interface so testers never mistake a demo site for the real one.
 OSEA_ENVIRONMENT_LABEL = os.environ.get("OSEA_ENVIRONMENT_LABEL", "Development" if DEBUG else "")
 
+# Privacy notice: shown as a draft until OSEA approves the wording; the contact address for requests.
+OSEA_PRIVACY_NOTICE_APPROVED = env_bool("OSEA_PRIVACY_NOTICE_APPROVED", False)
+OSEA_PRIVACY_CONTACT = os.environ.get("OSEA_PRIVACY_CONTACT", "")
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

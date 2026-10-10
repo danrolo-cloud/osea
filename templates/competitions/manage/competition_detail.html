@@ -103,7 +103,7 @@
     {% for a in announcements %}
       <div class="announcement">
         <h3><a href="{% url 'competitions:announcement_edit' competition.pk a.pk %}">{{ a.title }}</a></h3>
-        <span class="when">{{ a.created_at|date:"M j, Y" }} · {{ a.division|default:_("Whole competition") }}{% if a.is_public %} · {% translate "public" %}{% endif %}</span>
+        <span class="when">{{ a.created_at|date:"M j, Y" }} · {{ a.division|default:_("Whole competition") }}{% if a.is_public %} · {% translate "public" %}{% endif %}{% if a.emailed_at %} · {% blocktranslate count counter=a.emailed_count %}emailed to {{ counter }} coach{% plural %}emailed to {{ counter }} coaches{% endblocktranslate %}{% else %} · {% translate "not emailed" %}{% endif %}</span>
       </div>
     {% empty %}
       <p class="muted">{% translate "No announcements yet." %}</p>

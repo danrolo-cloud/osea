@@ -47,6 +47,8 @@ two-step sign-in for each, and record who has access in OSEA's records.
    | `EMAIL_HOST_USER` | the sending account's address, e.g. `platform@osea.ca` (*Encrypted*) |
    | `EMAIL_HOST_PASSWORD` | the sending account's **app password** from step 6, not its normal password (*Encrypted*) |
    | `DEFAULT_FROM_EMAIL` | `OSEA Esports <platform@osea.ca>` (must be the sending account's address) |
+   | `OSEA_PRIVACY_CONTACT` | the address for privacy questions and requests, e.g. `info@osea.ca` |
+   | `OSEA_PRIVACY_NOTICE_APPROVED` | `true` once OSEA has approved the wording of the privacy notice (until then it shows as a draft) |
 
    **During the pilot** also set `OSEA_ENVIRONMENT_LABEL` = `Pilot`. Every page then shows a yellow
    "Pilot site · use fictional student information only" banner, and the pilot tools below work.

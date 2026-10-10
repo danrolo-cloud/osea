@@ -22,7 +22,7 @@ Registration life cycle:
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
+from django.core.mail import send_mail, send_mass_mail
 from django.db import IntegrityError, transaction
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -33,7 +33,7 @@ from audit.log import record
 from schools.models import CoachAccess, Membership
 from schools.permissions import schools_for
 
-from .models import Competition, Registration, RosterChange, RosterEntry
+from .models import Announcement, Competition, Registration, RosterChange, RosterEntry
 
 Status = Registration.Status
 ACTIVE = [s for s in Status.values if s != Status.WITHDRAWN]
@@ -607,3 +607,36 @@ def decline_roster_change(request, change, admin, note):
         change=change,
     )
     return change
+
+
+# ------------------------------------------------------------------ announcements
+
+
+def announcement_recipients(announcement):
+    """Coaches of every team that can see the announcement: the whole competition, or one division."""
+    teams = announcement.competition.registrations.exclude(status=Status.WITHDRAWN).select_related(
+        "school", "created_by"
+    )
+    if announcement.division_id:
+        teams = teams.filter(division_id=announcement.division_id)
+    return sorted({email for team in teams for email in coach_emails(team)})
+
+
+def email_announcement(request, announcement):
+    """Email a separate copy to each coach (so no one sees other addresses). Returns how many."""
+    recipients = announcement_recipients(announcement)
+    if not recipients:
+        return 0
+    link = request.build_absolute_uri(reverse("competitions:detail", args=[announcement.competition_id]))
+    body = render_to_string("competitions/emails/announcement.txt", {"announcement": announcement, "link": link})
+    subject = f"{announcement.competition.name}: {announcement.title}"
+    messages = [(subject, body, settings.DEFAULT_FROM_EMAIL, [email]) for email in recipients]
+    transaction.on_commit(lambda: send_mass_mail(messages))
+    Announcement.objects.filter(pk=announcement.pk).update(emailed_at=timezone.now(), emailed_count=len(recipients))
+    record(
+        request.user,
+        "announcement.emailed",
+        f"Emailed announcement “{announcement.title}” to {len(recipients)} coach(es)",
+        target=announcement.competition,
+    )
+    return len(recipients)

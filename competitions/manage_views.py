@@ -6,6 +6,7 @@ from django.db import transaction
 from django.db.models import Count, ProtectedError, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 
 from accounts.permissions import admin_required
@@ -416,7 +417,22 @@ def announcement_form(request, competition_pk, pk=None):
             f"{'Edited' if announcement else 'Posted'} announcement “{saved.title}” in {competition}",
             target=competition,
         )
-        messages.success(request, _("Announcement saved."))
+        if form.cleaned_data["send_email"]:
+            count = services.email_announcement(request, saved)
+            if count:
+                messages.success(
+                    request,
+                    ngettext(
+                        "Announcement saved and emailed to %(count)d coach.",
+                        "Announcement saved and emailed to %(count)d coaches.",
+                        count,
+                    )
+                    % {"count": count},
+                )
+            else:
+                messages.success(request, _("Announcement saved. No coaches to email yet: no teams have registered."))
+        else:
+            messages.success(request, _("Announcement saved."))
         return redirect("competitions:manage_competition", pk=competition.pk)
     return render(
         request,
